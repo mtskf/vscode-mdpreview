@@ -174,9 +174,6 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
     for (const cssPath of customCssPaths) {
       let cssUri: vscode.Uri | undefined;
 
-import { isPathInWorkspace } from './utils/path-validation';
-
-// ... (in resolveCustomCssUris)
 
       if (path.isAbsolute(cssPath)) {
         // Check if absolute path is within any workspace folder

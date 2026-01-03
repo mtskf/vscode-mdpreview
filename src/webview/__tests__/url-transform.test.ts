@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { urlTransform } from '../lib/url-transform';
 
 describe('urlTransform', () => {
@@ -26,9 +26,10 @@ describe('urlTransform', () => {
   });
 
   it('returns original URL if resolution fails', () => {
-    // improper base path that causes URL constructor to fail?
-    // URL constructor throws if base is invalid.
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     expect(urlTransform('image.png', 'invalid-base-url')).toBe('image.png');
+    expect(warnSpy).toHaveBeenCalled();
+    warnSpy.mockRestore();
   });
 
   it('returns original URL if no basePath provided', () => {

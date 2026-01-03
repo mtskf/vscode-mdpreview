@@ -44,4 +44,22 @@ describe('CopyButton', () => {
     // Fallback creates textarea and calls execCommand
     expect(document.execCommand).toHaveBeenCalledWith('copy');
   });
+
+  it('logs when execCommand fails', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    mockWriteText.mockRejectedValueOnce(new Error('Clipboard error'));
+    (document.execCommand as unknown as ReturnType<typeof vi.fn>).mockImplementationOnce(() => {
+      throw new Error('execCommand failed');
+    });
+
+    render(<CopyButton text="error case" />);
+    const button = screen.getByRole('button', { name: /copy/i });
+
+    fireEvent.click(button);
+    await new Promise(process.nextTick);
+
+    expect(errorSpy).toHaveBeenCalledWith('Copy failed:', expect.any(Error));
+
+    errorSpy.mockRestore();
+  });
 });

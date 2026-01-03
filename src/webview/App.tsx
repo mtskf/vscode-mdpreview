@@ -6,10 +6,25 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 
 import type { WebviewMessage } from '../shared-types';
-
-const vscode = acquireVsCodeApi();
-
 import { useDebounce } from './hooks/useDebounce';
+
+declare global {
+  interface Window {
+    acquireVsCodeApi: () => any;
+  }
+}
+
+// Ensure VS Code API exists for local/testing environments.
+function getVsCodeApi() {
+  if (typeof window.acquireVsCodeApi === 'undefined') {
+    window.acquireVsCodeApi = () => ({
+      postMessage: (msg: WebviewMessage) => console.log('postMessage:', msg),
+    });
+  }
+  return window.acquireVsCodeApi();
+}
+
+const vscode = getVsCodeApi();
 
 // ...
 
@@ -139,22 +154,6 @@ function App() {
       </div>
     </div>
   );
-}
-
-// Mock acquireVsCodeApi for local browser testing
-declare global {
-  interface Window {
-    acquireVsCodeApi: () => any;
-  }
-}
-if (typeof window.acquireVsCodeApi === 'undefined') {
-  window.acquireVsCodeApi = () => ({
-    postMessage: (msg: WebviewMessage) => console.log('postMessage:', msg),
-  });
-}
-
-function acquireVsCodeApi() {
-    return window.acquireVsCodeApi();
 }
 
 export default App;

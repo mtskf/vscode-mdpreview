@@ -5,6 +5,7 @@ import { isPathInWorkspace } from '../path-validation';
 
 // Mock vscode
 vi.mock('vscode', () => ({
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   Uri: {
     file: (path: string) => ({ fsPath: path, scheme: 'file' }),
   },
