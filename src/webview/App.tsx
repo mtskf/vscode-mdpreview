@@ -1,16 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
-import Editor, { EditorHandle } from './components/Editor';
+import Editor from './components/Editor';
 import Preview from './components/Preview';
 import Toc from './components/Toc';
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 
-import type { WebviewMessage } from '../shared-types';
+import { WebviewMessage, WebviewToExtensionMessage, ExtensionToWebviewMessage } from '../shared-types';
+import { EditorHandle } from './components/Editor';
 import { useDebounce } from './hooks/useDebounce';
 
 declare global {
   interface Window {
-    acquireVsCodeApi: () => any;
+    acquireVsCodeApi(): {
+      postMessage: (message: WebviewToExtensionMessage) => void;
+      getState: () => any;
+      setState: (state: any) => void;
+    };
   }
 }
 
@@ -18,7 +23,9 @@ declare global {
 function getVsCodeApi() {
   if (typeof window.acquireVsCodeApi === 'undefined') {
     window.acquireVsCodeApi = () => ({
-      postMessage: (msg: WebviewMessage) => console.log('postMessage:', msg),
+      postMessage: (msg: WebviewToExtensionMessage) => console.log('postMessage:', msg),
+      getState: () => ({}),
+      setState: (state: any) => console.log('setState:', state),
     });
   }
   return window.acquireVsCodeApi();
@@ -49,7 +56,7 @@ function App() {
         return;
     }
 
-    const msg: WebviewMessage = {
+    const msg: WebviewToExtensionMessage = {
       type: 'update',
       text: debouncedContent
     };
@@ -58,7 +65,7 @@ function App() {
 
   // Handle messages from extension
   useEffect(() => {
-    const handleMessage = (event: MessageEvent<WebviewMessage>) => {
+    const handleMessage = (event: MessageEvent<ExtensionToWebviewMessage>) => {
       const message = event.data;
       if (message.type === 'update') {
         const newText = message.text;

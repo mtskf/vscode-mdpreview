@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { WebviewMessage } from './shared-types';
+import { WebviewMessage, WebviewToExtensionMessage, ExtensionToWebviewMessage } from './shared-types';
 import { ConfigManager } from './services/config-manager';
 
 export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
@@ -83,7 +83,7 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 
 
 
-		webviewPanel.webview.onDidReceiveMessage((e: WebviewMessage) => {
+		webviewPanel.webview.onDidReceiveMessage((e: WebviewToExtensionMessage) => {
 			switch (e.type) {
 				case 'update':
 					this.updateTextDocument(document, e.text);
@@ -97,9 +97,7 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
         case 'paste-image':
           this.handlePasteImage(document, webviewPanel, e.data, e.fileName);
           return;
-        case 'insert-image':
-           // Handled by webview
-           return;
+
 			}
 		});
 

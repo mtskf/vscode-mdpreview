@@ -3,28 +3,7 @@ import * as vscode from 'vscode';
 import { ConfigManager } from '../config-manager';
 import { isPathInWorkspace } from '../../utils/path-validation';
 
-// Mock vscode
-vi.mock('vscode', () => ({
-  Uri: {
-    file: (path: string) => ({ fsPath: path, scheme: 'file', toString: () => `file://${path}` }),
-    joinPath: (uri: any, ...segments: string[]) => ({
-      fsPath: `${uri.fsPath}/${segments.join('/')}`,
-      scheme: 'file',
-      toString: () => `file://${uri.fsPath}/${segments.join('/')}`
-    }),
-  },
-  workspace: {
-    getConfiguration: vi.fn(),
-    getWorkspaceFolder: vi.fn(),
-    fs: {
-      stat: vi.fn(),
-    },
-    workspaceFolders: [],
-  },
-  window: {
-    showWarningMessage: vi.fn(),
-  },
-}));
+
 
 // Mock path-validation
 vi.mock('../../utils/path-validation', () => ({
@@ -39,6 +18,7 @@ describe('ConfigManager', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
+        ConfigManager.resetInstance();
         configManager = ConfigManager.getInstance();
 
         // Default mocks
@@ -47,6 +27,7 @@ describe('ConfigManager', () => {
         });
         mockStat.mockResolvedValue({}); // File exists by default
         (vscode.workspace as any).workspaceFolders = [{ uri: { fsPath: '/workspace' } }];
+        (isPathInWorkspace as any).mockReturnValue(true);
     });
 
     it('returns empty array if no custom CSS paths are configured', async () => {
@@ -89,5 +70,23 @@ describe('ConfigManager', () => {
         const uris = await configManager.resolveCustomCssUris({ uri: {} } as any);
         expect(uris).toHaveLength(0);
         expect(mockShowWarningMessage).toHaveBeenCalledWith(expect.stringContaining('not found'));
+    });
+
+    it('rejects relative path escaping workspace', async () => {
+        mockGetConfiguration.mockReturnValue({ get: () => ['../outside.css'] });
+        (vscode.workspace.getWorkspaceFolder as any).mockReturnValue({ uri: { fsPath: '/workspace/inner' } });
+        (vscode.workspace as any).workspaceFolders = [{ uri: { fsPath: '/workspace' } }];
+        mockStat.mockResolvedValue({});
+
+        // Mock isPathInWorkspace to reject the resolved path
+        (isPathInWorkspace as any).mockImplementation((p: string) => {
+            return !p.includes('outside');
+        });
+
+        const uris = await configManager.resolveCustomCssUris({ uri: {} } as any);
+
+        // Should be rejected by security check
+        expect(uris).toHaveLength(0);
+        expect(mockShowWarningMessage).toHaveBeenCalledWith(expect.stringContaining('rejected'));
     });
 });
