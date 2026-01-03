@@ -84,11 +84,55 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
         case 'open-link':
           this.openLink(e.href);
           return;
+        case 'paste-image':
+          this.handlePasteImage(document, webviewPanel, e.data, e.fileName);
+          return;
 			}
 		});
 
 		updateWebview();
 	}
+
+  private async handlePasteImage(document: vscode.TextDocument, startWebviewPanel: vscode.WebviewPanel, base64Data: string, fileName: string) {
+      if (document.uri.scheme === 'untitled') {
+          vscode.window.showWarningMessage('Please save the document before pasting images.');
+          return;
+      }
+
+      const docDir = vscode.Uri.joinPath(document.uri, '..');
+      const assetsDir = vscode.Uri.joinPath(docDir, 'assets');
+
+      try {
+          // Ensure assets directory exists
+          try {
+              await vscode.workspace.fs.stat(assetsDir);
+          } catch {
+              await vscode.workspace.fs.createDirectory(assetsDir);
+          }
+
+          // Generate unique filename
+          const timestamp = new Date().getTime();
+          const ext = path.extname(fileName) || '.png';
+          const newFileName = `image-${timestamp}${ext}`;
+          const fileUri = vscode.Uri.joinPath(assetsDir, newFileName);
+
+          // Write file
+          const buffer = Buffer.from(base64Data, 'base64');
+          await vscode.workspace.fs.writeFile(fileUri, buffer);
+
+          // Generate relative path for Markdown
+          // Simple assumes assets is subfolder
+          const relativePath = `assets/${newFileName}`;
+          const markdownSnippet = `![Image](${relativePath})`;
+
+          startWebviewPanel.webview.postMessage({
+              type: 'insert-image',
+              text: markdownSnippet
+          });
+      } catch (e) {
+          vscode.window.showErrorMessage(`Failed to save image: ${e}`);
+      }
+  }
 
   private async openLink(href: string) {
     // Simple resolution: assume it's a filename
@@ -121,7 +165,7 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 			<head>
 				<meta charset="UTF-8">
 				<meta name="viewport" content="width=device-width, initial-scale=1.0">
-				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}'; img-src ${webview.cspSource} https: data:;">
+				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}'; img-src ${webview.cspSource} https: data:;">
 				<link href="${styleUri}" rel="stylesheet">
 				<title>Markdown Preview</title>
 			</head>

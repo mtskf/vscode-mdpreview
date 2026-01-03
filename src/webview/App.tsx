@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import Editor from './components/Editor';
+import Editor, { EditorHandle } from './components/Editor';
 import Preview from './components/Preview';
 import Toc from './components/Toc';
 import { Switch } from "@/components/ui/switch";
@@ -12,6 +12,7 @@ function App() {
   const [basePath, setBasePath] = useState('');
   const [isEditMode, setIsEditMode] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
+  const editorRef = useRef<EditorHandle>(null);
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -23,6 +24,11 @@ function App() {
         }
       } else if (message.type === 'toggle') {
         setIsEditMode(prev => !prev);
+      } else if (message.type === 'insert-image') {
+        // Insert markdown into editor at cursor
+        if (editorRef.current) {
+          editorRef.current.insertAtCursor(message.text);
+        }
       }
     };
 
@@ -36,6 +42,21 @@ function App() {
       type: 'update',
       text: newContent,
     });
+  };
+
+  const handlePasteImage = async (file: File) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+          const base64 = reader.result?.toString().split(',')[1];
+          if (base64) {
+              vscode.postMessage({
+                  type: 'paste-image',
+                  data: base64,
+                  fileName: file.name
+              });
+          }
+      };
+      reader.readAsDataURL(file);
   };
 
   const handleTocNavigate = (id: string) => {
@@ -80,7 +101,12 @@ function App() {
       <div className="flex-1 flex overflow-hidden">
         {isEditMode ? (
           <div className="flex-1 overflow-auto">
-            <Editor content={content} onChange={handleContentChange} />
+            <Editor
+              ref={editorRef}
+              content={content}
+              onChange={handleContentChange}
+              onPasteImage={handlePasteImage}
+            />
           </div>
         ) : (
           <>

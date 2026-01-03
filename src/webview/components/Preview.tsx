@@ -103,8 +103,24 @@ const Preview: React.FC<PreviewProps> = ({ content, basePath, onTaskToggle }) =>
             const match = /language-(\w+)/.exec(className || '');
             const codeString = String(children).replace(/\n$/, '');
 
-            const handleCopy = () => {
-              navigator.clipboard.writeText(codeString);
+            const handleCopy = async () => {
+              try {
+                await navigator.clipboard.writeText(codeString);
+              } catch (err) {
+                // Fallback for older browsers or permission issues
+                const textArea = document.createElement('textarea');
+                textArea.value = codeString;
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-9999px';
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                  document.execCommand('copy');
+                } catch (e) {
+                  console.error('Copy failed:', e);
+                }
+                document.body.removeChild(textArea);
+              }
             };
 
             return !inline && match ? (

@@ -191,5 +191,32 @@ const x = 1;
 
       expect(writeText).toHaveBeenCalledWith('const x = 1;');
     });
+
+    it('falls back to execCommand when clipboard API fails', async () => {
+      const codeBlock = `\`\`\`javascript\nconst y = 2;\n\`\`\``;
+
+      // Mock clipboard to reject
+      const writeText = vi.fn().mockRejectedValue(new Error('Permission denied'));
+      Object.assign(navigator, {
+        clipboard: {
+          writeText
+        }
+      });
+
+      // Mock execCommand
+      const execCommand = vi.fn().mockReturnValue(true);
+      document.execCommand = execCommand;
+
+      render(<Preview content={codeBlock} />);
+
+      const button = screen.getByText('Copy');
+      fireEvent.click(button);
+
+      // Wait for async fallback
+      await new Promise(resolve => setTimeout(resolve, 50));
+
+      expect(writeText).toHaveBeenCalledWith('const y = 2;');
+      expect(execCommand).toHaveBeenCalledWith('copy');
+    });
   });
 });
