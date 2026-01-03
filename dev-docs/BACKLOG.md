@@ -1,5 +1,16 @@
 # Backlog
 
+## Recently Implemented
+- ✅ Copy Code Button
+- ✅ Table of Contents (TOC)
+- ✅ Interactive Task Lists
+- ✅ Smart Image Paste
+- ✅ Clipboard fallback
+- ✅ CSP style-src fix
+
+## In Progress
+- 🔄 Custom CSS Support
+
 ## Features Deferred from Initial Release
 
 ### Export Capabilities
