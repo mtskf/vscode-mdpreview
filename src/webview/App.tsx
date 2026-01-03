@@ -35,23 +35,35 @@ function App() {
   const previewRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<EditorHandle>(null);
 
+  // Track the last content received from extension to avoid echo loops
+  const lastRemoteContent = useRef('');
+
+  // Debounce content updates to extension
   const debouncedContent = useDebounce(content, 300);
 
+  // Send updates to extension when debounced content changes
   useEffect(() => {
-    // Post update message when debounced content changes
-    // This reduces IPC traffic on every keystroke
+    // Don't send update if it matches what we just received from extension
+    // This also handles the initial render (both empty)
+    if (debouncedContent === lastRemoteContent.current) {
+        return;
+    }
+
     const msg: WebviewMessage = {
       type: 'update',
-      text: debouncedContent,
+      text: debouncedContent
     };
     vscode.postMessage(msg);
   }, [debouncedContent]);
 
+  // Handle messages from extension
   useEffect(() => {
     const handleMessage = (event: MessageEvent<WebviewMessage>) => {
       const message = event.data;
       if (message.type === 'update') {
-        setContent(message.text);
+        const newText = message.text;
+        lastRemoteContent.current = newText;
+        setContent(newText);
         if (message.base) {
           setBasePath(message.base);
         }

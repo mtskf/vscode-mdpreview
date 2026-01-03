@@ -1,16 +1,8 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, act } from '@testing-library/react';
-import React, { useEffect } from 'react';
+import React from 'react';
 import App from '../App';
-
-// Mock VS Code API
-const mockVsCodePostMessage = vi.fn();
-Object.defineProperty(window, 'acquireVsCodeApi', {
-  value: () => ({
-    postMessage: mockVsCodePostMessage,
-  }),
-  writable: true,
-});
+import { mockVsCodePostMessage } from './setup';
 
 // Mock dependencies
 vi.mock('../components/Editor', () => ({
@@ -77,6 +69,35 @@ describe('App Edge Cases', () => {
         });
 
         // Assert no message was sent
+        expect(mockVsCodePostMessage).not.toHaveBeenCalled();
+    });
+
+    it('does not send update message on initial render (empty state)', async () => {
+        mockVsCodePostMessage.mockClear();
+        render(<App />);
+
+        // Wait for debounce period
+        await act(async () => {
+            vi.advanceTimersByTime(500);
+        });
+
+        expect(mockVsCodePostMessage).not.toHaveBeenCalled();
+    });
+
+    it('does not echo update message back to extension when receiving content', async () => {
+        mockVsCodePostMessage.mockClear();
+        render(<App />);
+
+        // Simulate receiving new content from extension
+        await act(async () => {
+            window.dispatchEvent(new MessageEvent('message', {
+                data: { type: 'update', text: 'Remote Content' },
+            }));
+             // Wait for debounce period (which would trigger the echo if bug exists)
+             vi.advanceTimersByTime(500);
+        });
+
+        // Should update internal state (verified by other tests), but NOT send message back
         expect(mockVsCodePostMessage).not.toHaveBeenCalled();
     });
 });
