@@ -10,8 +10,8 @@
 
 ## Known Issues (Open)
 
-- [ ] P2 Clean up Monaco paste listener on unmount to avoid handler leaks if the editor remounts.
-- [ ] P3 Guard `editor.getSelection()` in `insertAtCursor` in case the selection is null.
+- [x] P2 Clean up Monaco paste listener on unmount to avoid handler leaks if the editor remounts.
+- [x] P3 Guard `editor.getSelection()` in `insertAtCursor` in case the selection is null.
 
 ## Refactoring Opportunities (Open)
 
