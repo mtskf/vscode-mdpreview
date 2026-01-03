@@ -21,7 +21,7 @@ const MarkdownEditor = forwardRef<EditorHandle, EditorProps>(({ content, onChang
   const handleEditorDidMount = (editor: any, monaco: any) => {
       editorRef.current = editor;
       const container = editor.getContainerDomNode();
-      container.addEventListener('paste', (event: ClipboardEvent) => {
+      const pasteHandler = (event: ClipboardEvent) => {
           const items = event.clipboardData?.items;
           if (items) {
               for (const item of items) {
@@ -35,6 +35,13 @@ const MarkdownEditor = forwardRef<EditorHandle, EditorProps>(({ content, onChang
                   }
               }
           }
+      };
+
+      container.addEventListener('paste', pasteHandler);
+
+      // Cleanup listener when editor is disposed
+      editor.onDidDispose(() => {
+        container.removeEventListener('paste', pasteHandler);
       });
   };
 
@@ -43,9 +50,11 @@ const MarkdownEditor = forwardRef<EditorHandle, EditorProps>(({ content, onChang
       const editor = editorRef.current;
       if (editor) {
         const selection = editor.getSelection();
-        const id = { major: 1, minor: 1 };
-        const op = {identifier: id, range: selection, text: text, forceMoveMarkers: true};
-        editor.executeEdits("my-source", [op]);
+        if (selection) {
+            const id = { major: 1, minor: 1 };
+            const op = {identifier: id, range: selection, text: text, forceMoveMarkers: true};
+            editor.executeEdits("my-source", [op]);
+        }
       }
     }
   }));

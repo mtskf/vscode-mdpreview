@@ -21,6 +21,7 @@ vi.mock('@monaco-editor/react', () => {
             getContainerDomNode: () => document.getElementById('mock-editor-container'),
             getSelection: () => ({ startLineNumber: 1, startColumn: 1, endLineNumber: 1, endColumn: 1 }),
             executeEdits: executeEditsMock,
+            onDidDispose: vi.fn(),
           };
           onMount(mockEditor, {});
         }
