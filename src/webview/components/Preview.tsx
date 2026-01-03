@@ -76,7 +76,6 @@ const Preview: React.FC<PreviewProps> = ({ content, basePath, onTaskToggle }) =>
           remarkFrontmatter,
           remarkGemoji,
           remarkSupersub,
-          // remarkMark removed - incompatible with current react-markdown
         ]}
         rehypePlugins={[rehypeKatex, rehypeSlug, rehypeInjectLineNumber]}
         components={{

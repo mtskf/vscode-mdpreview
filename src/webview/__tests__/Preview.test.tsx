@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import Preview from '../components/Preview';
 
 // Mock CSS imports
@@ -125,7 +125,6 @@ const x = 1;
     it('resolves relative image paths with basePath', () => {
       render(<Preview content="![Local](./image.png)" basePath="vscode-webview://test" />);
       const img = screen.getByAltText('Local');
-      // new URL('./image.png', 'vscode-webview://test/') resolves to .../image.png
       expect(img).toHaveAttribute('src', 'vscode-webview://test/image.png');
     });
 
@@ -169,14 +168,6 @@ const x = 1;
       render(<Preview content={taskList} onTaskToggle={handleToggle} />);
 
       const checkbox = screen.getByRole('checkbox');
-      // fireEvent.click(checkbox); // React 18 / new helper?
-      // screen.debug();
-      // Checkbox is input type checkbox.
-      // Need to import fireEvent
-
-      // Let's assume fireEvent is imported from unit test setup/framework or define it.
-      // Ah, need to import fireEvent at top.
-      const { fireEvent } = require('@testing-library/react');
       fireEvent.click(checkbox);
 
       expect(handleToggle).toHaveBeenCalledWith(0, true);
@@ -195,14 +186,7 @@ const x = 1;
 
       render(<Preview content={codeBlock} />);
 
-      // Button appears on hover, or just in DOM?
-      // In component: opacity-0 group-hover:opacity-100.
-      // Use userEvent.hover or just find hidden button (it is in DOM).
-      // .getByText('Copy') might works if visible?
-      // Since styles are just classes, JSDOM renders it.
-
       const button = screen.getByText('Copy');
-      const { fireEvent } = require('@testing-library/react');
       fireEvent.click(button);
 
       expect(writeText).toHaveBeenCalledWith('const x = 1;');
