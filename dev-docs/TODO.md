@@ -6,23 +6,19 @@
 - P2: Important / should fix soon
 - P3: Nice to have / cleanup
 
-
-
 ## Known Issues (Open)
 
-- [x] P2 Clean up Monaco paste listener on unmount to avoid handler leaks if the editor remounts.
-- [x] P3 Guard `editor.getSelection()` in `insertAtCursor` in case the selection is null.
+- [ ] P3 Add `FileReader.onerror` handling for paste-image to surface failures.
+- [ ] P3 Avoid filename collisions when pasting multiple images quickly (timestamp-only name).
+- [ ] P3 Throttle or de-duplicate missing custom CSS warnings to reduce noise.
 
 ## Refactoring Opportunities (Open)
 
-- [ ] P3 Extract `resolveCustomCssUris` path validation into a small helper for clarity and unit testing.
+- [ ] P3 Add an exhaustive `switch` helper for `WebviewMessage` handling (assertNever).
 
 ## Done (Archive)
 
-- [x] Add clipboard write fallback when `navigator.clipboard` is unavailable or denied.
-- [x] Review CSP `style-src` for webview to avoid breaking styles that require inline CSS.
-- [x] Add `localResourceRoots` entries for custom CSS absolute paths so webview can load them.
-- [x] Resolve custom CSS relative paths per workspace folder (use `getWorkspaceFolder(document.uri)`).
-- [x] Scope `getConfiguration('antigravity')` to the document URI in multi-root workspaces.
-- [x] Warn or skip custom CSS paths that do not exist to avoid silent failures.
-- [x] Centralize webview message types (union + type guards) to avoid stringly-typed messages across App/EditorProvider.
+- [x] P2 Clean up Monaco paste listener on unmount to avoid handler leaks if the editor remounts.
+- [x] P3 Guard `editor.getSelection()` in `insertAtCursor` in case the selection is null.
+- [x] P3 Centralize webview message types (union + type guards) to avoid stringly-typed messages across App/EditorProvider.
+- [x] P3 Extract `resolveCustomCssUris` path validation into a small helper for clarity and unit testing.
