@@ -5,7 +5,7 @@ import Toc from './components/Toc';
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 
-import { WebviewMessage, WebviewToExtensionMessage, ExtensionToWebviewMessage } from '../shared-types';
+import { WebviewToExtensionMessage, ExtensionToWebviewMessage } from '../shared-types';
 import { EditorHandle } from './components/Editor';
 import { useDebounce } from './hooks/useDebounce';
 
@@ -98,7 +98,7 @@ function App() {
       reader.onload = () => {
           const base64 = reader.result?.toString().split(',')[1];
           if (base64) {
-              const msg: WebviewMessage = {
+              const msg: WebviewToExtensionMessage = {
                   type: 'paste-image',
                   data: base64,
                   fileName: file.name

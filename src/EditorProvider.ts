@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { WebviewMessage, WebviewToExtensionMessage, ExtensionToWebviewMessage } from './shared-types';
+import { WebviewToExtensionMessage } from './shared-types';
 import { ConfigManager } from './services/config-manager';
 
 export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
