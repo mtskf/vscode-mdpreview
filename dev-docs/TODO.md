@@ -9,6 +9,10 @@
 
 - [x] Add clipboard write fallback when `navigator.clipboard` is unavailable or denied.
 - [x] Review CSP `style-src` for webview to avoid breaking styles that require inline CSS.
+- [x] Add `localResourceRoots` entries for custom CSS absolute paths so webview can load them.
+- [x] Resolve custom CSS relative paths per workspace folder (use `getWorkspaceFolder(document.uri)`).
+- [x] Scope `getConfiguration('antigravity')` to the document URI in multi-root workspaces.
+- [x] Warn or skip custom CSS paths that do not exist to avoid silent failures.
 
 
 ## Refactoring Opportunities
