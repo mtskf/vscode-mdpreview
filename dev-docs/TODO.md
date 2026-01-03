@@ -20,8 +20,8 @@
 
 ## Refactoring Opportunities (Open)
 
-- [ ] P3 Centralize webview message types (union + type guards) to avoid stringly-typed messages across App/EditorProvider.
-- [ ] P3 Extract `resolveCustomCssUris` path validation into a small helper for clarity and unit testing.
+- [x] P3 Centralize webview message types (union + type guards) to avoid stringly-typed messages across App/EditorProvider.
+- [x] P3 Extract `resolveCustomCssUris` path validation into a small helper for clarity and unit testing.
 
 ## Done (Archive)
 

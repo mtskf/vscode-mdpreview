@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import { WebviewMessage } from './shared-types';
+import { isPathInWorkspace } from './utils/path-validation';
 
 export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 
@@ -77,7 +79,9 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
       MarkdownEditorProvider.webviews.delete(webviewPanel);
 		});
 
-		webviewPanel.webview.onDidReceiveMessage(e => {
+
+
+		webviewPanel.webview.onDidReceiveMessage((e: WebviewMessage) => {
 			switch (e.type) {
 				case 'update':
 					this.updateTextDocument(document, e.text);
@@ -91,6 +95,9 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
         case 'paste-image':
           this.handlePasteImage(document, webviewPanel, e.data, e.fileName);
           return;
+        case 'insert-image':
+           // Handled by webview
+           return;
 			}
 		});
 
@@ -167,15 +174,14 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
     for (const cssPath of customCssPaths) {
       let cssUri: vscode.Uri | undefined;
 
+import { isPathInWorkspace } from './utils/path-validation';
+
+// ... (in resolveCustomCssUris)
+
       if (path.isAbsolute(cssPath)) {
         // Check if absolute path is within any workspace folder
-        const absoluteUri = vscode.Uri.file(cssPath);
-        const isInWorkspace = vscode.workspace.workspaceFolders?.some(folder => {
-          const relative = path.relative(folder.uri.fsPath, absoluteUri.fsPath);
-          return !relative.startsWith('..') && !path.isAbsolute(relative);
-        });
-        if (isInWorkspace) {
-          cssUri = absoluteUri;
+        if (isPathInWorkspace(cssPath, vscode.workspace.workspaceFolders)) {
+          cssUri = vscode.Uri.file(cssPath);
         } else {
           vscode.window.showWarningMessage(`Custom CSS rejected (outside workspace): ${cssPath}`);
           continue;

@@ -5,6 +5,8 @@ import Toc from './components/Toc';
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 
+import type { WebviewMessage } from '../shared-types';
+
 const vscode = acquireVsCodeApi();
 
 function App() {
@@ -15,7 +17,7 @@ function App() {
   const editorRef = useRef<EditorHandle>(null);
 
   useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
+    const handleMessage = (event: MessageEvent<WebviewMessage>) => {
       const message = event.data;
       if (message.type === 'update') {
         setContent(message.text);
@@ -38,10 +40,11 @@ function App() {
 
   const handleContentChange = (newContent: string) => {
     setContent(newContent);
-    vscode.postMessage({
+    const msg: WebviewMessage = {
       type: 'update',
       text: newContent,
-    });
+    };
+    vscode.postMessage(msg);
   };
 
   const handlePasteImage = async (file: File) => {
@@ -49,11 +52,12 @@ function App() {
       reader.onload = () => {
           const base64 = reader.result?.toString().split(',')[1];
           if (base64) {
-              vscode.postMessage({
+              const msg: WebviewMessage = {
                   type: 'paste-image',
                   data: base64,
                   fileName: file.name
-              });
+              };
+              vscode.postMessage(msg);
           }
       };
       reader.readAsDataURL(file);
@@ -76,10 +80,11 @@ function App() {
       }
       const newContent = lines.join('\n');
       setContent(newContent);
-      vscode.postMessage({
+      const msg: WebviewMessage = {
         type: 'update',
         text: newContent,
-      });
+      };
+      vscode.postMessage(msg);
     }
   };
 
@@ -133,7 +138,7 @@ declare global {
 }
 if (typeof window.acquireVsCodeApi === 'undefined') {
   window.acquireVsCodeApi = () => ({
-    postMessage: (msg: any) => console.log('postMessage:', msg),
+    postMessage: (msg: WebviewMessage) => console.log('postMessage:', msg),
   });
 }
 
