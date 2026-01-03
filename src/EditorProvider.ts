@@ -168,7 +168,17 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
       let cssUri: vscode.Uri | undefined;
 
       if (path.isAbsolute(cssPath)) {
-        cssUri = vscode.Uri.file(cssPath);
+        // Check if absolute path is within any workspace folder
+        const absoluteUri = vscode.Uri.file(cssPath);
+        const isInWorkspace = vscode.workspace.workspaceFolders?.some(folder =>
+          absoluteUri.fsPath.startsWith(folder.uri.fsPath)
+        );
+        if (isInWorkspace) {
+          cssUri = absoluteUri;
+        } else {
+          vscode.window.showWarningMessage(`Custom CSS rejected (outside workspace): ${cssPath}`);
+          continue;
+        }
       } else if (docWorkspace) {
         cssUri = vscode.Uri.joinPath(docWorkspace.uri, cssPath);
       } else if (vscode.workspace.workspaceFolders?.[0]) {

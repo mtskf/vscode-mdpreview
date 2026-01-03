@@ -50,7 +50,7 @@
           "items": {
             "type": "string"
           },
-          "description": "List of custom CSS file paths to apply to the Markdown preview. Paths can be absolute or relative to workspace."
+          "description": "List of custom CSS file paths to apply to the Markdown preview. Paths must be relative to workspace or absolute paths within the workspace. Paths outside the workspace are rejected."
         }
       }
     }
