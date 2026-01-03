@@ -170,9 +170,10 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
       if (path.isAbsolute(cssPath)) {
         // Check if absolute path is within any workspace folder
         const absoluteUri = vscode.Uri.file(cssPath);
-        const isInWorkspace = vscode.workspace.workspaceFolders?.some(folder =>
-          absoluteUri.fsPath.startsWith(folder.uri.fsPath)
-        );
+        const isInWorkspace = vscode.workspace.workspaceFolders?.some(folder => {
+          const relative = path.relative(folder.uri.fsPath, absoluteUri.fsPath);
+          return !relative.startsWith('..') && !path.isAbsolute(relative);
+        });
         if (isInWorkspace) {
           cssUri = absoluteUri;
         } else {
