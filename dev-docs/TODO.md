@@ -16,8 +16,11 @@
 - [x] Resolve custom CSS relative paths per workspace folder (use `getWorkspaceFolder(document.uri)`).
 - [x] Scope `getConfiguration('antigravity')` to the document URI in multi-root workspaces.
 - [x] Warn or skip custom CSS paths that do not exist to avoid silent failures.
+- [ ] Clean up Monaco paste listener on unmount to avoid handler leaks if the editor remounts.
+- [ ] Guard `editor.getSelection()` in `insertAtCursor` in case the selection is null.
 
 
 ## Refactoring Opportunities
 
-- [ ]
+- [ ] Centralize webview message types (union + type guards) to avoid stringly-typed messages across App/EditorProvider.
+- [ ] Extract `resolveCustomCssUris` path validation into a small helper for clarity and unit testing.
