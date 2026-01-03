@@ -11,6 +11,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src/webview'),
+      'vscode': path.resolve(__dirname, './__mocks__/vscode.ts'),
     },
   },
 });
