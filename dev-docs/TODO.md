@@ -2,7 +2,10 @@
 
 ## Commits to review
 
-- [ ] `9709b21` feat: Add Custom CSS Support
+- [x] `9709b21` feat: Add Custom CSS Support
+- [x] `2f228ca` feat: Add Custom CSS Support
+- [x] `4fd7e2b` fix: Improve Custom CSS robustness
+- [x] `173c2d7` security: Restrict Custom CSS to workspace paths
 
 
 ## Known Issues
