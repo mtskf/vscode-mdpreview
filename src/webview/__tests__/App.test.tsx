@@ -230,26 +230,6 @@ describe('App Component', () => {
         text: '- [ ] Task 1',
       });
     });
-
-    it('ignores invalid line index for task toggle', async () => {
-        render(<App />);
-        const event = new MessageEvent('message', {
-          data: { type: 'update', text: '- [ ] Task 1' },
-        });
-        await act(async () => {
-          window.dispatchEvent(event);
-        });
-
-        // Normally called via UI callback, but we can simulate by calling the handler if we exposed it,
-        // or by rendering with a manual call.
-        // Since we can't easily reach the internal handler function without exposing it,
-        // and we can't trigger it via UI because the line index logic is internal to how the Preview component calls the callback.
-        // We can verify that if Preview calls it with -1, nothing happens.
-
-        // However, we are testing App component integration.
-        // We can check coverage later. The "if (lineIndex >= 0 ...)" block is defensive.
-        // To test it, we'd need to mock Preview and invoke the prop with -1.
-    });
   });
 
   describe('Image Paste', () => {

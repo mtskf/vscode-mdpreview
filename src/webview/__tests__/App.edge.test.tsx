@@ -42,6 +42,14 @@ vi.mock('../components/Preview', () => ({
 }));
 
 describe('App Edge Cases', () => {
+    beforeEach(() => {
+        vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
     it('ignores invalid line index for task toggle', async () => {
         // Setup initial content
         render(<App />);
@@ -52,10 +60,11 @@ describe('App Edge Cases', () => {
                 data: { type: 'update', text: '- [ ] Task 1' },
             }));
             // Advance timers for debounce
-             vi.useFakeTimers();
              vi.advanceTimersByTime(300);
-             vi.useRealTimers();
         });
+
+        // Clear any previous calls (like the initial update)
+        mockVsCodePostMessage.mockClear();
 
         // Trigger invalid toggle (-1)
         const invalidBtn = document.querySelector('[data-testid="trigger-invalid-toggle"]');
@@ -63,21 +72,11 @@ describe('App Edge Cases', () => {
 
         await act(async () => {
             invalidBtn?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+             // Wait for potential debounce (if it were to happen)
+             vi.advanceTimersByTime(1000);
         });
 
-        // Ensure NO update message was sent (besides the initial one? No, this is outbound)
-        // Wait, App sends 'update' message when content changes.
-        // If content did NOT change (ignored), no message should be sent.
-
-        mockVsCodePostMessage.mockClear();
-
-        // Wait for debounce (if it were to happen)
-        await act(async () => {
-            vi.useFakeTimers();
-            vi.advanceTimersByTime(1000);
-            vi.useRealTimers();
-        });
-
+        // Assert no message was sent
         expect(mockVsCodePostMessage).not.toHaveBeenCalled();
     });
 });
