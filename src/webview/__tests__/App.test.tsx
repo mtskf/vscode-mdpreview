@@ -49,6 +49,11 @@ describe('App Component', () => {
     vi.clearAllMocks();
     mockVsCodePostMessage.mockClear();
     executeEditsMock.mockClear();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   describe('Initial State', () => {
@@ -193,6 +198,10 @@ describe('App Component', () => {
       const checkbox = screen.getByRole('checkbox');
       fireEvent.click(checkbox);
 
+      await act(async () => {
+        vi.advanceTimersByTime(300);
+      });
+
       expect(mockVsCodePostMessage).toHaveBeenCalledWith({
         type: 'update',
         text: '- [x] Task 1',
@@ -233,7 +242,9 @@ describe('App Component', () => {
       });
 
       // Wait for FileReader
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await act(async () => {
+        vi.advanceTimersByTime(100);
+      });
 
       expect(mockVsCodePostMessage).toHaveBeenCalledWith(expect.objectContaining({
         type: 'paste-image',
@@ -284,6 +295,10 @@ describe('App Component', () => {
       const editor = screen.getByTestId('mock-editor');
       await act(async () => {
         fireEvent.change(editor, { target: { value: 'New content' } });
+      });
+
+      await act(async () => {
+        vi.advanceTimersByTime(300);
       });
 
       expect(mockVsCodePostMessage).toHaveBeenCalledWith({

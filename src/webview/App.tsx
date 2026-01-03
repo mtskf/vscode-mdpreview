@@ -9,12 +9,28 @@ import type { WebviewMessage } from '../shared-types';
 
 const vscode = acquireVsCodeApi();
 
+import { useDebounce } from './hooks/useDebounce';
+
+// ...
+
 function App() {
   const [content, setContent] = useState('');
   const [basePath, setBasePath] = useState('');
   const [isEditMode, setIsEditMode] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<EditorHandle>(null);
+
+  const debouncedContent = useDebounce(content, 300);
+
+  useEffect(() => {
+    // Post update message when debounced content changes
+    // This reduces IPC traffic on every keystroke
+    const msg: WebviewMessage = {
+      type: 'update',
+      text: debouncedContent,
+    };
+    vscode.postMessage(msg);
+  }, [debouncedContent]);
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent<WebviewMessage>) => {
@@ -40,11 +56,7 @@ function App() {
 
   const handleContentChange = (newContent: string) => {
     setContent(newContent);
-    const msg: WebviewMessage = {
-      type: 'update',
-      text: newContent,
-    };
-    vscode.postMessage(msg);
+    // Removed immediate postMessage, handled by useEffect
   };
 
   const handlePasteImage = async (file: File) => {
@@ -59,6 +71,9 @@ function App() {
               };
               vscode.postMessage(msg);
           }
+      };
+      reader.onerror = (error) => {
+          console.error('FileReader error:', error);
       };
       reader.readAsDataURL(file);
   };
@@ -80,11 +95,7 @@ function App() {
       }
       const newContent = lines.join('\n');
       setContent(newContent);
-      const msg: WebviewMessage = {
-        type: 'update',
-        text: newContent,
-      };
-      vscode.postMessage(msg);
+      // Debounce effect will handle the update
     }
   };
 

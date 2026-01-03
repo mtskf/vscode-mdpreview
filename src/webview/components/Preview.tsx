@@ -15,6 +15,11 @@ import remarkGemoji from 'remark-gemoji';
 import remarkSupersub from 'remark-supersub';
 import 'remark-github-blockquote-alert/alert.css';
 
+import { urlTransform } from '../lib/url-transform';
+import CopyButton from './CopyButton';
+import type { Element, Root } from 'hast';
+import type { Plugin } from 'unified';
+
 import { visit } from 'unist-util-visit';
 
 interface PreviewProps {
@@ -24,17 +29,19 @@ interface PreviewProps {
 }
 
 // Rehype plugin to inject line numbers into task list checkboxes
-const rehypeInjectLineNumber = () => {
-  return (tree: any) => {
-    visit(tree, 'element', (node: any) => {
+const rehypeInjectLineNumber: Plugin<[], Root> = () => {
+  return (tree) => {
+    visit(tree, 'element', (node: Element) => {
       // Look for list items
       if (node.tagName === 'li' && node.position) {
         // Check if it has a checkbox input as direct child (GFM structure)
-        const checkbox = node.children.find((child: any) =>
-          child.tagName === 'input' && child.properties?.type === 'checkbox'
-        );
+        const checkbox = node.children.find((child) =>
+          child.type === 'element' &&
+          child.tagName === 'input' &&
+          child.properties?.type === 'checkbox'
+        ) as Element | undefined;
 
-        if (checkbox) {
+        if (checkbox && checkbox.properties) {
             // Inject the line number into the checkbox properties
             checkbox.properties.dataLine = node.position.start.line;
         }
@@ -44,30 +51,10 @@ const rehypeInjectLineNumber = () => {
 };
 
 const Preview: React.FC<PreviewProps> = ({ content, basePath, onTaskToggle }) => {
-  const urlTransform = (url: string) => {
-    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
-      return url;
-    }
-    if (url.startsWith('/')) {
-        return url;
-    }
-    // Relative path resolution
-    if (basePath) {
-      try {
-        const base = basePath.endsWith('/') ? basePath : `${basePath}/`;
-        return new URL(url, base).toString();
-      } catch (e) {
-        console.warn('Failed to resolve relative URL:', url, e);
-        return url;
-      }
-    }
-    return url;
-  };
-
   return (
     <div className="prose prose-invert max-w-none p-6">
       <Markdown
-        urlTransform={urlTransform}
+        urlTransform={(url) => urlTransform(url, basePath)}
         remarkPlugins={[
           remarkGfm,
           remarkWikiLink,
@@ -89,7 +76,7 @@ const Preview: React.FC<PreviewProps> = ({ content, basePath, onTaskToggle }) =>
                   type="checkbox"
                   checked={checked}
                   onChange={(e) => {
-                    if (onTaskToggle && startLine) {
+                    if (onTaskToggle && typeof startLine === 'number') {
                       onTaskToggle(startLine - 1, e.target.checked);
                     }
                   }}
@@ -103,35 +90,9 @@ const Preview: React.FC<PreviewProps> = ({ content, basePath, onTaskToggle }) =>
             const match = /language-(\w+)/.exec(className || '');
             const codeString = String(children).replace(/\n$/, '');
 
-            const handleCopy = async () => {
-              try {
-                await navigator.clipboard.writeText(codeString);
-              } catch (err) {
-                // Fallback for older browsers or permission issues
-                const textArea = document.createElement('textarea');
-                textArea.value = codeString;
-                textArea.style.position = 'fixed';
-                textArea.style.left = '-9999px';
-                document.body.appendChild(textArea);
-                textArea.select();
-                try {
-                  document.execCommand('copy');
-                } catch (e) {
-                  console.error('Copy failed:', e);
-                }
-                document.body.removeChild(textArea);
-              }
-            };
-
             return !inline && match ? (
               <div className="relative group">
-                <button
-                  onClick={handleCopy}
-                  className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-700 hover:bg-gray-600 text-gray-300 px-2 py-1 rounded text-xs"
-                  title="Copy code"
-                >
-                  Copy
-                </button>
+                <CopyButton text={codeString} />
                 <SyntaxHighlighter
                   {...props}
                   style={vscDarkPlus}
