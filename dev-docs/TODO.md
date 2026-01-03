@@ -6,22 +6,16 @@
 - P2: Important / should fix soon
 - P3: Nice to have / cleanup
 
-## Review Queue
 
-- [ ] P1 `173c2d7` security: Restrict Custom CSS to workspace paths
-- [ ] P1 `4fd7e2b` fix: Improve Custom CSS robustness
-- [ ] P2 `9709b21` feat: Add Custom CSS Support
-- [ ] P3 `2f228ca` feat: Add Custom CSS Support
 
 ## Known Issues (Open)
 
-- [x] P2 Clean up Monaco paste listener on unmount to avoid handler leaks if the editor remounts.
-- [x] P3 Guard `editor.getSelection()` in `insertAtCursor` in case the selection is null.
+- [ ] P2 Clean up Monaco paste listener on unmount to avoid handler leaks if the editor remounts.
+- [ ] P3 Guard `editor.getSelection()` in `insertAtCursor` in case the selection is null.
 
 ## Refactoring Opportunities (Open)
 
-- [x] P3 Centralize webview message types (union + type guards) to avoid stringly-typed messages across App/EditorProvider.
-- [x] P3 Extract `resolveCustomCssUris` path validation into a small helper for clarity and unit testing.
+- [ ] P3 Extract `resolveCustomCssUris` path validation into a small helper for clarity and unit testing.
 
 ## Done (Archive)
 
@@ -31,3 +25,4 @@
 - [x] Resolve custom CSS relative paths per workspace folder (use `getWorkspaceFolder(document.uri)`).
 - [x] Scope `getConfiguration('antigravity')` to the document URI in multi-root workspaces.
 - [x] Warn or skip custom CSS paths that do not exist to avoid silent failures.
+- [x] Centralize webview message types (union + type guards) to avoid stringly-typed messages across App/EditorProvider.
