@@ -159,6 +159,28 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 		const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'webview', 'main.css'));
     const nonce = getNonce();
 
+    // Get custom CSS from settings
+    const config = vscode.workspace.getConfiguration('antigravity');
+    const customCssPaths: string[] = config.get('customCss') || [];
+
+    // Resolve and convert custom CSS paths
+    const customCssLinks = customCssPaths.map(cssPath => {
+      let cssUri: vscode.Uri;
+      if (path.isAbsolute(cssPath)) {
+        cssUri = vscode.Uri.file(cssPath);
+      } else {
+        // Relative to workspace root
+        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+        if (workspaceFolder) {
+          cssUri = vscode.Uri.joinPath(workspaceFolder.uri, cssPath);
+        } else {
+          return ''; // Skip if no workspace
+        }
+      }
+      const webviewUri = webview.asWebviewUri(cssUri);
+      return `<link href="${webviewUri}" rel="stylesheet">`;
+    }).join('\n');
+
 		return `
 			<!DOCTYPE html>
 			<html lang="en">
@@ -167,6 +189,7 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 				<meta name="viewport" content="width=device-width, initial-scale=1.0">
 				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}'; img-src ${webview.cspSource} https: data:;">
 				<link href="${styleUri}" rel="stylesheet">
+				${customCssLinks}
 				<title>Markdown Preview</title>
 			</head>
 			<body class="bg-background text-foreground">

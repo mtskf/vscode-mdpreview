@@ -40,7 +40,20 @@
         "mac": "alt+m",
         "when": "activeCustomEditorId == 'antigravity.markdownEditor'"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Antigravity Markdown",
+      "properties": {
+        "antigravity.customCss": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "description": "List of custom CSS file paths to apply to the Markdown preview. Paths can be absolute or relative to workspace."
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run package",

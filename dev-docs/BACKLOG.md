@@ -7,9 +7,7 @@
 - ✅ Smart Image Paste
 - ✅ Clipboard fallback
 - ✅ CSP style-src fix
-
-## In Progress
-- 🔄 Custom CSS Support
+- ✅ Custom CSS Support
 
 ## Features Deferred from Initial Release
 
