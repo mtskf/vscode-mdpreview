@@ -6,6 +6,10 @@ A VS Code extension that provides a feature-rich Markdown preview with same-tab 
 
 - **Same-Tab Toggle**: Switch between edit and preview modes within the same tab using a UI toggle or keyboard shortcut (`Alt+M`)
 - **Dark Mode**: Preview is styled for dark mode by default
+- **Copy Code Button**: One-click code block copying with clipboard fallback
+- **Table of Contents (TOC)**: Auto-generated sidebar navigation from headings
+- **Interactive Task Lists**: Click to toggle checkboxes directly in preview
+- **Smart Image Paste**: Paste images from clipboard, auto-saved to `assets/` folder
 - **Extended Markdown Support**:
   - GFM (GitHub Flavored Markdown): tables, strikethrough, task lists, autolinks
   - Math equations (KaTeX)
