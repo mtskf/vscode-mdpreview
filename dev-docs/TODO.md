@@ -1,14 +1,9 @@
 # TODO
 
 ## Priority
-- P1: Critical / blocks release
-- P2: Important / should fix soon
-- P3: Nice to have / cleanup
-
-## Known Issues (Open)
-
-- [ ] P1 Debounced `update` can post an empty document before the first extension `update`, risking data loss.
-- [ ] P3 Debounced `update` posts after remote `update` messages, causing redundant IPC traffic.
+- 🚨: Critical / blocks release
+- 🟡: Important / should fix soon
+- 🟢: Nice to have / cleanup
 
 ## Refactoring Opportunities (Open)
 
