@@ -8,27 +8,46 @@ vi.mock('katex/dist/katex.min.css', () => ({}));
 vi.mock('remark-github-blockquote-alert/alert.css', () => ({}));
 vi.mock('../index.css', () => ({}));
 
+const executeEditsMock = vi.fn();
+
 // Mock Monaco Editor
-vi.mock('@monaco-editor/react', () => ({
-  default: (props: any) => {
-    return (
-      <textarea
-        data-testid="mock-editor"
-        value={props.value}
-        onChange={(e) => {
-          if (props.onChange) {
-            props.onChange(e.target.value);
-          }
-        }}
-      />
-    );
-  },
-}));
+vi.mock('@monaco-editor/react', () => {
+  const React = require('react');
+  return {
+    default: ({ onChange, onMount, value }: any) => {
+      React.useEffect(() => {
+        if (onMount) {
+          const mockEditor = {
+            getContainerDomNode: () => document.getElementById('mock-editor-container'),
+            getSelection: () => ({ startLineNumber: 1, startColumn: 1, endLineNumber: 1, endColumn: 1 }),
+            executeEdits: executeEditsMock,
+          };
+          onMount(mockEditor, {});
+        }
+      }, [onMount]);
+
+      return (
+        <div id="mock-editor-container">
+          <textarea
+            data-testid="mock-editor"
+            value={value}
+            onChange={(e) => {
+              if (onChange) {
+                onChange(e.target.value);
+              }
+            }}
+          />
+        </div>
+      );
+    },
+  };
+});
 
 describe('App Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockVsCodePostMessage.mockClear();
+    executeEditsMock.mockClear();
   });
 
   describe('Initial State', () => {
@@ -177,6 +196,79 @@ describe('App Component', () => {
         type: 'update',
         text: '- [x] Task 1',
       });
+    });
+  });
+
+  describe('Image Paste', () => {
+    it('handles image paste and posts message', async () => {
+      render(<App />);
+      // Switch to edit mode
+      const toggle = screen.getByRole('switch');
+      await act(async () => {
+        fireEvent.click(toggle);
+      });
+
+      const container = document.getElementById('mock-editor-container');
+      expect(container).toBeInTheDocument();
+
+      // Create a mock file
+      const file = new File(['dummy content'], 'test.png', { type: 'image/png' });
+
+      // Create clipboard event with file
+      const clipboardEvent = new Event('paste', { bubbles: true, cancelable: true });
+      // @ts-ignore
+      clipboardEvent.clipboardData = {
+        items: [
+          {
+            type: 'image/png',
+            getAsFile: () => file,
+          },
+        ],
+      };
+
+      // Fire paste
+      await act(async () => {
+        container?.dispatchEvent(clipboardEvent);
+      });
+
+      // Wait for FileReader
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      expect(mockVsCodePostMessage).toHaveBeenCalledWith(expect.objectContaining({
+        type: 'paste-image',
+        fileName: 'test.png',
+        // data: base64 string... "dummy content" base64 is "ZHVtbXkgY29udGVudA=="
+        data: 'ZHVtbXkgY29udGVudA=='
+      }));
+    });
+  });
+
+  describe('Insert Image', () => {
+    it('inserts image markdown at cursor when receiving insert-image message', async () => {
+      render(<App />);
+      // Switch to edit mode
+      const toggle = screen.getByRole('switch');
+      await act(async () => {
+        fireEvent.click(toggle);
+      });
+
+      const event = new MessageEvent('message', {
+        data: { type: 'insert-image', text: '![img](assets/img.png)' },
+      });
+
+      await act(async () => {
+        window.dispatchEvent(event);
+      });
+
+      expect(executeEditsMock).toHaveBeenCalledWith(
+        "my-source",
+        expect.arrayContaining([
+          expect.objectContaining({
+            text: '![img](assets/img.png)',
+            forceMoveMarkers: true
+          })
+        ])
+      );
     });
   });
 
