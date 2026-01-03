@@ -8,6 +8,7 @@
 - ✅ Clipboard fallback
 - ✅ CSP style-src fix
 - ✅ Custom CSS Support
+- ✅ Refactoring: ConfigManager, Types, Debounce, Security Checks (P2 completed)
 
 ## Features Deferred from Initial Release
 

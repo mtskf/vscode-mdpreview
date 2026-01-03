@@ -5,14 +5,13 @@ Antigravity Markdown Preview is a VS Code extension that provides a Custom Edito
 
 ## Components
 
-### Extension Host (`src/extension.ts`, `src/EditorProvider.ts`)
+### Extension Host (`src/extension.ts`, `src/EditorProvider.ts`, `src/services/config-manager.ts`)
 - **Role**: Manages the Webview lifecycle, file system operations, and VS Code integration.
 - **Responsibilities**:
     - Registering the Custom Editor Provider.
     - Reading/Writing the document file.
     - Handling `paste-image` events (Saving images to disk).
-    - Resolving Custom CSS configurations.
-    - Path security checks.
+    - **ConfigManager**: Resolving and validating Custom CSS configurations (Security checks).
 
 ### Webview (`src/webview/`)
 - **Role**: Renders the Markdown content and handles UI interactions.
@@ -25,9 +24,10 @@ Antigravity Markdown Preview is a VS Code extension that provides a Custom Edito
 
 ## Data Flow
 
-1. **Opening a File**: Extension Host reads file -> Sends `update` message -> Webview renders.
-2. **Editing**: Webview Monaco Editor changes -> Sends `update` message -> Extension Host writes to Virtual Document (VS Code handles saving to disk).
+1. **Opening a File**: Extension Host reads file -> Sends `ExtensionToWebviewMessage` (update) -> Webview renders.
+2. **Editing**: Webview Monaco Editor changes -> Debounce -> Sends `WebviewToExtensionMessage` (update) -> Extension Host writes to Virtual Document.
 3. **Pasting Image**:
-    - Webview `paste` event -> Converts to Base64 -> Sends `paste-image`.
-    - Extension Host -> Validates -> Saves to `assets/` -> Sends `insert-image` with Markdown link.
+    - Webview `paste` event -> Converts to Base64 -> Sends `WebviewToExtensionMessage` (paste-image).
+    - Extension Host -> Validates -> Saves to `assets/` -> Sends `ExtensionToWebviewMessage` (insert-image) with Markdown link.
     - Webview -> Inserts Markdown link into Editor.
+4. **Custom CSS**: `ConfigManager` resolves paths securely -> passed to Webview.

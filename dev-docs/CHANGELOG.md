@@ -14,8 +14,11 @@ All notable changes to this project will be documented in this file.
 - **Security Check**: Restricted custom CSS paths to workspace directories only.
 
 ### Changed
-- **Refactoring**:
-    - Extracted `urlTransform` logic and `CopyButton` component for better maintainability and testing.
-    - Improved type safety with shared types and strict AST visitor types.
-    - Optimized performance with content debounce in Webview (300ms).
-    - Enhanced robustness with error handling for image pasting.
+- **Refactoring (P2/M)**:
+    - **Configuration Management**: Extracted custom CSS logic into `ConfigManager` service.
+    - **Strict Types**: Split `WebviewMessage` into `WebviewToExtensionMessage` and `ExtensionToWebviewMessage` for type-safe communication.
+    - **Security**: Strengthened `customCss` path validation to prevent workspace traversal (`../`).
+    - **Debounce**: Implemented `useDebounce` hook for checking differences to reduce redundant updates.
+    - Extracted `urlTransform` logic and `CopyButton` component.
+    - STRICT AST visitor types for `Preview.tsx`.
+    - Added `FileReader` error handling.
