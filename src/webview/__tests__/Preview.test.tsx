@@ -125,7 +125,26 @@ const x = 1;
     it('resolves relative image paths with basePath', () => {
       render(<Preview content="![Local](./image.png)" basePath="vscode-webview://test" />);
       const img = screen.getByAltText('Local');
-      expect(img).toHaveAttribute('src', 'vscode-webview://test/./image.png');
+      // new URL('./image.png', 'vscode-webview://test/') resolves to .../image.png
+      expect(img).toHaveAttribute('src', 'vscode-webview://test/image.png');
+    });
+
+    it('resolves image paths with spaces', () => {
+      render(<Preview content="![Space](./my%20image.png)" basePath="vscode-webview://test" />);
+      const img = screen.getByAltText('Space');
+      expect(img).toHaveAttribute('src', 'vscode-webview://test/my%20image.png');
+    });
+
+    it('resolves parent directory references', () => {
+       render(<Preview content="![Up](../image.png)" basePath="vscode-webview://test/folder" />);
+       const img = screen.getByAltText('Up');
+       expect(img).toHaveAttribute('src', 'vscode-webview://test/image.png');
+    });
+
+    it('resolves root relative image paths', () => {
+      render(<Preview content="![Root](/image.png)" basePath="vscode-webview://test" />);
+      const img = screen.getByAltText('Root');
+      expect(img).toHaveAttribute('src', '/image.png');
     });
 
     it('does not modify absolute URLs', () => {
@@ -140,6 +159,53 @@ const x = 1;
       render(<Preview content="[Click here](https://example.com)" />);
       const link = screen.getByRole('link', { name: 'Click here' });
       expect(link).toHaveAttribute('href', 'https://example.com');
+    });
+  });
+
+  describe('Interactions', () => {
+    it('calls onTaskToggle when checkbox is clicked', () => {
+      const handleToggle = vi.fn();
+      const taskList = `- [ ] Task 1`;
+      render(<Preview content={taskList} onTaskToggle={handleToggle} />);
+
+      const checkbox = screen.getByRole('checkbox');
+      // fireEvent.click(checkbox); // React 18 / new helper?
+      // screen.debug();
+      // Checkbox is input type checkbox.
+      // Need to import fireEvent
+
+      // Let's assume fireEvent is imported from unit test setup/framework or define it.
+      // Ah, need to import fireEvent at top.
+      const { fireEvent } = require('@testing-library/react');
+      fireEvent.click(checkbox);
+
+      expect(handleToggle).toHaveBeenCalledWith(0, true);
+    });
+
+    it('copies code to clipboard when copy button is clicked', async () => {
+      const codeBlock = `\`\`\`javascript\nconst x = 1;\n\`\`\``;
+
+      // Mock clipboard
+      const writeText = vi.fn();
+      Object.assign(navigator, {
+        clipboard: {
+          writeText
+        }
+      });
+
+      render(<Preview content={codeBlock} />);
+
+      // Button appears on hover, or just in DOM?
+      // In component: opacity-0 group-hover:opacity-100.
+      // Use userEvent.hover or just find hidden button (it is in DOM).
+      // .getByText('Copy') might works if visible?
+      // Since styles are just classes, JSDOM renders it.
+
+      const button = screen.getByText('Copy');
+      const { fireEvent } = require('@testing-library/react');
+      fireEvent.click(button);
+
+      expect(writeText).toHaveBeenCalledWith('const x = 1;');
     });
   });
 });

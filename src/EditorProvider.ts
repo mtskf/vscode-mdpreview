@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 
 export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 
@@ -31,6 +32,11 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
     MarkdownEditorProvider.webviews.add(webviewPanel);
 		webviewPanel.webview.options = {
 			enableScripts: true,
+      localResourceRoots: [
+        vscode.Uri.joinPath(this.context.extensionUri, 'dist'),
+        vscode.Uri.file(path.dirname(document.uri.fsPath)),
+        ...(vscode.workspace.workspaceFolders?.map(f => f.uri) || [])
+      ]
 		};
 
 		webviewPanel.webview.html = this.getHtmlForWebview(webviewPanel.webview);
@@ -93,9 +99,19 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
     }
   }
 
+  private getNonce() {
+    let text = '';
+    const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    for (let i = 0; i < 32; i++) {
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+    return text;
+  }
+
 	private getHtmlForWebview(webview: vscode.Webview): string {
 		const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'webview', 'main.js'));
 		const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'webview', 'main.css'));
+    const nonce = this.getNonce();
 
 		return `
 			<!DOCTYPE html>
@@ -103,21 +119,27 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 			<head>
 				<meta charset="UTF-8">
 				<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webview.cspSource} https: data:; script-src 'nonce-${nonce}'; style-src ${webview.cspSource} 'unsafe-inline'; font-src ${webview.cspSource};">
 				<link href="${styleUri}" rel="stylesheet">
 				<title>Markdown Preview</title>
 			</head>
 			<body class="bg-background text-foreground">
 				<div id="root"></div>
-				<script type="module" src="${scriptUri}"></script>
+				<script nonce="${nonce}" type="module" src="${scriptUri}"></script>
 			</body>
 			</html>`;
 	}
 
 	private updateTextDocument(document: vscode.TextDocument, text: string) {
 		const edit = new vscode.WorkspaceEdit();
+
+    // Safer full range calculation
+    const lastLine = document.lineAt(document.lineCount - 1);
+    const range = new vscode.Range(0, 0, document.lineCount - 1, lastLine.range.end.character);
+
 		edit.replace(
 			document.uri,
-			new vscode.Range(0, 0, document.lineCount, 0),
+			range,
 			text
 		);
 		return vscode.workspace.applyEdit(edit);

@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import GithubSlugger from 'github-slugger';
 
 interface TocItem {
   id: string;
@@ -15,16 +16,13 @@ interface TocProps {
 function extractHeadings(markdown: string): TocItem[] {
   const headingRegex = /^(#{1,6})\s+(.+)$/gm;
   const headings: TocItem[] = [];
+  const slugger = new GithubSlugger();
   let match;
 
   while ((match = headingRegex.exec(markdown)) !== null) {
     const level = match[1].length;
     const text = match[2].trim();
-    // Generate id from text (simple slug)
-    const id = text
-      .toLowerCase()
-      .replace(/[^\w\s-]/g, '')
-      .replace(/\s+/g, '-');
+    const id = slugger.slug(text);
 
     headings.push({ id, text, level });
   }
