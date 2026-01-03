@@ -12,3 +12,10 @@ All notable changes to this project will be documented in this file.
     - TOC (Table of Contents) sidebar.
     - Interactive Task Lists.
 - **Security Check**: Restricted custom CSS paths to workspace directories only.
+
+### Changed
+- **Refactoring**:
+    - Extracted `urlTransform` logic and `CopyButton` component for better maintainability and testing.
+    - Improved type safety with shared types and strict AST visitor types.
+    - Optimized performance with content debounce in Webview (300ms).
+    - Enhanced robustness with error handling for image pasting.
