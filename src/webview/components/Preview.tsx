@@ -13,8 +13,9 @@ import remarkBreaks from 'remark-breaks';
 import remarkFrontmatter from 'remark-frontmatter';
 import remarkGemoji from 'remark-gemoji';
 import remarkSupersub from 'remark-supersub';
-import remarkMark from 'remark-mark';
 import 'remark-github-blockquote-alert/alert.css';
+
+import { visit } from 'unist-util-visit';
 
 interface PreviewProps {
   content: string;
@@ -22,22 +23,43 @@ interface PreviewProps {
   onTaskToggle?: (lineIndex: number, checked: boolean) => void;
 }
 
+// Rehype plugin to inject line numbers into task list checkboxes
+const rehypeInjectLineNumber = () => {
+  return (tree: any) => {
+    visit(tree, 'element', (node: any) => {
+      // Look for list items
+      if (node.tagName === 'li' && node.position) {
+        // Check if it has a checkbox input as direct child (GFM structure)
+        const checkbox = node.children.find((child: any) =>
+          child.tagName === 'input' && child.properties?.type === 'checkbox'
+        );
+
+        if (checkbox) {
+            // Inject the line number into the checkbox properties
+            checkbox.properties.dataLine = node.position.start.line;
+        }
+      }
+    });
+  };
+};
+
 const Preview: React.FC<PreviewProps> = ({ content, basePath, onTaskToggle }) => {
   const urlTransform = (url: string) => {
     if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
       return url;
     }
     if (url.startsWith('/')) {
-        // If absolute path, might need specific handling or assume relative to workspace root?
-        // For now, let's treat it as relative or just leave it.
-        // VS Code webview absolute paths usually behave weirdly without mapping.
         return url;
     }
-    // Relative path
+    // Relative path resolution
     if (basePath) {
-        // Ensure basePath ends with /
+      try {
         const base = basePath.endsWith('/') ? basePath : `${basePath}/`;
-        return `${base}${url}`;
+        return new URL(url, base).toString();
+      } catch (e) {
+        console.warn('Failed to resolve relative URL:', url, e);
+        return url;
+      }
     }
     return url;
   };
@@ -54,22 +76,21 @@ const Preview: React.FC<PreviewProps> = ({ content, basePath, onTaskToggle }) =>
           remarkFrontmatter,
           remarkGemoji,
           remarkSupersub,
-          // remarkMark removed - incompatible with current react-markdown
         ]}
-        rehypePlugins={[rehypeKatex, rehypeSlug]}
+        rehypePlugins={[rehypeKatex, rehypeSlug, rehypeInjectLineNumber]}
         components={{
           input({node, type, checked, ...props}: any) {
             if (type === 'checkbox') {
-              // Find the position in the original content
-              const position = node?.position;
+              // Retrieve injected line number
+              const startLine = node?.properties?.dataLine;
               return (
                 <input
                   {...props}
                   type="checkbox"
                   checked={checked}
                   onChange={(e) => {
-                    if (onTaskToggle && position?.start?.line) {
-                      onTaskToggle(position.start.line - 1, e.target.checked);
+                    if (onTaskToggle && startLine) {
+                      onTaskToggle(startLine - 1, e.target.checked);
                     }
                   }}
                   className="cursor-pointer"

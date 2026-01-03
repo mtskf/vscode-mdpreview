@@ -122,7 +122,61 @@ describe('App Component', () => {
       });
 
       const img = screen.getByAltText('img');
-      expect(img).toHaveAttribute('src', 'vscode-webview://test-base/./local.png');
+      expect(img).toHaveAttribute('src', 'vscode-webview://test-base/local.png');
+    });
+
+    it('renders TOC when content has headings', async () => {
+      render(<App />);
+
+      const event = new MessageEvent('message', {
+        data: { type: 'update', text: '# Heading 1\n## Heading 2' },
+      });
+
+      await act(async () => {
+        window.dispatchEvent(event);
+      });
+
+      // Check TOC items
+      expect(screen.getByRole('button', { name: 'Heading 1' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Heading 2' })).toBeInTheDocument();
+    });
+
+    it('handles TOC navigation', async () => {
+      // Mock scrollIntoView
+      const scrollIntoView = vi.fn();
+      window.HTMLElement.prototype.scrollIntoView = scrollIntoView;
+
+      render(<App />);
+      const event = new MessageEvent('message', {
+        data: { type: 'update', text: '# Heading 1' },
+      });
+      await act(async () => {
+        window.dispatchEvent(event);
+      });
+
+      const tocItem = screen.getByRole('button', { name: 'Heading 1' });
+      fireEvent.click(tocItem);
+
+      expect(scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth' });
+    });
+
+    it('handles task list toggling and updates content', async () => {
+      render(<App />);
+      // Initial content with unchecked task
+      const event = new MessageEvent('message', {
+        data: { type: 'update', text: '- [ ] Task 1' },
+      });
+      await act(async () => {
+        window.dispatchEvent(event);
+      });
+
+      const checkbox = screen.getByRole('checkbox');
+      fireEvent.click(checkbox);
+
+      expect(mockVsCodePostMessage).toHaveBeenCalledWith({
+        type: 'update',
+        text: '- [x] Task 1',
+      });
     });
   });
 

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import Preview from '../components/Preview';
 
 // Mock CSS imports
@@ -125,7 +125,25 @@ const x = 1;
     it('resolves relative image paths with basePath', () => {
       render(<Preview content="![Local](./image.png)" basePath="vscode-webview://test" />);
       const img = screen.getByAltText('Local');
-      expect(img).toHaveAttribute('src', 'vscode-webview://test/./image.png');
+      expect(img).toHaveAttribute('src', 'vscode-webview://test/image.png');
+    });
+
+    it('resolves image paths with spaces', () => {
+      render(<Preview content="![Space](./my%20image.png)" basePath="vscode-webview://test" />);
+      const img = screen.getByAltText('Space');
+      expect(img).toHaveAttribute('src', 'vscode-webview://test/my%20image.png');
+    });
+
+    it('resolves parent directory references', () => {
+       render(<Preview content="![Up](../image.png)" basePath="vscode-webview://test/folder" />);
+       const img = screen.getByAltText('Up');
+       expect(img).toHaveAttribute('src', 'vscode-webview://test/image.png');
+    });
+
+    it('resolves root relative image paths', () => {
+      render(<Preview content="![Root](/image.png)" basePath="vscode-webview://test" />);
+      const img = screen.getByAltText('Root');
+      expect(img).toHaveAttribute('src', '/image.png');
     });
 
     it('does not modify absolute URLs', () => {
@@ -140,6 +158,38 @@ const x = 1;
       render(<Preview content="[Click here](https://example.com)" />);
       const link = screen.getByRole('link', { name: 'Click here' });
       expect(link).toHaveAttribute('href', 'https://example.com');
+    });
+  });
+
+  describe('Interactions', () => {
+    it('calls onTaskToggle when checkbox is clicked', () => {
+      const handleToggle = vi.fn();
+      const taskList = `- [ ] Task 1`;
+      render(<Preview content={taskList} onTaskToggle={handleToggle} />);
+
+      const checkbox = screen.getByRole('checkbox');
+      fireEvent.click(checkbox);
+
+      expect(handleToggle).toHaveBeenCalledWith(0, true);
+    });
+
+    it('copies code to clipboard when copy button is clicked', async () => {
+      const codeBlock = `\`\`\`javascript\nconst x = 1;\n\`\`\``;
+
+      // Mock clipboard
+      const writeText = vi.fn();
+      Object.assign(navigator, {
+        clipboard: {
+          writeText
+        }
+      });
+
+      render(<Preview content={codeBlock} />);
+
+      const button = screen.getByText('Copy');
+      fireEvent.click(button);
+
+      expect(writeText).toHaveBeenCalledWith('const x = 1;');
     });
   });
 });

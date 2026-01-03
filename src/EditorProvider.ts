@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 
 export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 
@@ -29,19 +30,35 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 		_token: vscode.CancellationToken
 	): Promise<void> {
     MarkdownEditorProvider.webviews.add(webviewPanel);
+
+    const roots = [
+      vscode.Uri.joinPath(this.context.extensionUri, 'dist'),
+      ...(vscode.workspace.workspaceFolders?.map(f => f.uri) || [])
+    ];
+
+    // Add document folder to roots only if it's not untitled
+    if (document.uri.scheme !== 'untitled') {
+      roots.push(vscode.Uri.joinPath(document.uri, '..'));
+    }
+
 		webviewPanel.webview.options = {
 			enableScripts: true,
+      localResourceRoots: roots
 		};
 
 		webviewPanel.webview.html = this.getHtmlForWebview(webviewPanel.webview);
 
 		function updateWebview() {
-      const docFolder = vscode.Uri.joinPath(document.uri, '..');
-      const baseUri = webviewPanel.webview.asWebviewUri(docFolder);
+      let baseUri: string | undefined;
+      if (document.uri.scheme !== 'untitled') {
+          const docFolder = vscode.Uri.joinPath(document.uri, '..');
+          baseUri = webviewPanel.webview.asWebviewUri(docFolder).toString();
+      }
+
 			webviewPanel.webview.postMessage({
 				type: 'update',
 				text: document.getText(),
-        base: baseUri.toString()
+        base: baseUri
 			});
 		}
 
@@ -96,6 +113,7 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 	private getHtmlForWebview(webview: vscode.Webview): string {
 		const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'webview', 'main.js'));
 		const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'webview', 'main.css'));
+    const nonce = getNonce();
 
 		return `
 			<!DOCTYPE html>
@@ -103,23 +121,37 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 			<head>
 				<meta charset="UTF-8">
 				<meta name="viewport" content="width=device-width, initial-scale=1.0">
+				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}'; img-src ${webview.cspSource} https: data:;">
 				<link href="${styleUri}" rel="stylesheet">
 				<title>Markdown Preview</title>
 			</head>
 			<body class="bg-background text-foreground">
 				<div id="root"></div>
-				<script type="module" src="${scriptUri}"></script>
+				<script type="module" nonce="${nonce}" src="${scriptUri}"></script>
 			</body>
 			</html>`;
 	}
 
 	private updateTextDocument(document: vscode.TextDocument, text: string) {
+    if (document.getText() === text) {
+      return;
+    }
 		const edit = new vscode.WorkspaceEdit();
+    const lastLine = document.lineAt(document.lineCount - 1);
 		edit.replace(
 			document.uri,
-			new vscode.Range(0, 0, document.lineCount, 0),
+			new vscode.Range(0, 0, document.lineCount - 1, lastLine.range.end.character),
 			text
 		);
 		return vscode.workspace.applyEdit(edit);
 	}
+}
+
+function getNonce() {
+	let text = '';
+	const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+	for (let i = 0; i < 32; i++) {
+		text += possible.charAt(Math.floor(Math.random() * possible.length));
+	}
+	return text;
 }
