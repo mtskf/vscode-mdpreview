@@ -12,6 +12,7 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 	}
 
 	private static readonly viewType = 'antigravity.markdownEditor';
+  public static test_pendingExportUri: vscode.Uri | undefined;
   private static readonly webviews = new Set<vscode.WebviewPanel>();
   private static readonly panelDocuments = new Map<vscode.WebviewPanel, vscode.TextDocument>();
 
@@ -138,11 +139,18 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
       ? vscode.Uri.joinPath(document.uri, '..', `${docName}.html`)
       : undefined;
 
-    const saveUri = await vscode.window.showSaveDialog({
-      defaultUri,
-      filters: { 'HTML Files': ['html'] },
-      saveLabel: 'Export HTML'
-    });
+    let saveUri = MarkdownEditorProvider.test_pendingExportUri;
+
+    // Reset test URI
+    MarkdownEditorProvider.test_pendingExportUri = undefined;
+
+    if (!saveUri) {
+      saveUri = await vscode.window.showSaveDialog({
+        defaultUri,
+        filters: { 'HTML Files': ['html'] },
+        saveLabel: 'Export HTML'
+      });
+    }
 
     if (saveUri) {
       try {
@@ -235,7 +243,7 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 			<head>
 				<meta charset="UTF-8">
 				<meta name="viewport" content="width=device-width, initial-scale=1.0">
-				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src ${webview.cspSource} 'nonce-${nonce}' 'unsafe-eval'; worker-src ${webview.cspSource} blob: data:; img-src ${webview.cspSource} https: data:; font-src ${webview.cspSource} https: data:;">
+				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src ${webview.cspSource} 'nonce-${nonce}'; worker-src ${webview.cspSource} blob: data:; img-src ${webview.cspSource} https: data:; font-src ${webview.cspSource} https: data:;">
 				<link href="${styleUri}" rel="stylesheet">
 				${customCssLinks}
 				<title>Markdown Preview</title>
