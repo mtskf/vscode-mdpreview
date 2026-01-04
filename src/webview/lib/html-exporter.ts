@@ -74,10 +74,10 @@ export function sanitizeForExport(content: string): string {
     }
   );
 
-  // Fallback: remove vscode hrefs in non-anchor elements (link, use, etc.)
+  // Fallback: replace vscode hrefs in non-anchor elements (link, use, etc.) with #
   result = result.replace(
     new RegExp(`\\bhref=["'][^"']*(?:${vscodeUrlPattern})[^"']*["']`, 'gi'),
-    ''
+    'href="#"'
   );
 
   // Replace vscode URLs in CSS url() with empty/transparent

@@ -114,5 +114,14 @@ describe('html-exporter', () => {
 
       expect(result).not.toContain('vscode-resource:');
     });
+
+    it('replaces vscode href in non-anchor elements with #', () => {
+      const html = '<use href="vscode-resource://file/icon.svg#icon"></use>';
+      const result = sanitizeForExport(html);
+
+      expect(result).not.toContain('vscode-resource:');
+      expect(result).toContain('href="#"');
+      expect(result).toContain('<use');
+    });
   });
 });
