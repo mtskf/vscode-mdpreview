@@ -24,3 +24,12 @@ To load local resources (images, CSS) in a Webview:
 ### Mocking VS Code API
 VS Code API (`vscode`) is not available in unit tests running in Node/Vitest. It must be mocked carefully.
 - Integration tests involving FS or real VS Code commands are best done via VS Code Extension Tests (Mocha), not Unit Tests (Vitest).
+
+### E2E Testing with Dialogs
+System dialogs (like `showSaveDialog`) are blocking and native, making them impossible to control in headless environment integration tests.
+- **Solution**: Implement a "Test Hook" (e.g., static property `test_pendingExportUri`) guarded by `ExtensionMode.Test` to bypass the UI dialog and programmatically supply the path.
+
+### Webview CSP & Bundlers
+Modern bundlers (Vite/Webpack) often output ES Modules (`type="module"`) by default.
+- **Issue**: VS Code Webviews have strict security contexts. Loading ESM scripts often fails or gets blocked by strict CSPs lacking `unsafe-eval` or proper nonce handling for module maps.
+- **Solution**: Configure bundler to output **IIFE** (Immediately Invoked Function Expression) for a single bundled file, and ensure CSP includes `${webview.cspSource}` in `script-src`. Avoid `unsafe-eval` in production.

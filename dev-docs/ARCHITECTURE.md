@@ -31,3 +31,7 @@ Antigravity Markdown Preview is a VS Code extension that provides a Custom Edito
     - Extension Host -> Validates -> Saves to `assets/` -> Sends `ExtensionToWebviewMessage` (insert-image) with Markdown link.
     - Webview -> Inserts Markdown link into Editor.
 4. **Custom CSS**: `ConfigManager` resolves paths securely -> passed to Webview.
+5. **Export HTML**:
+    - Extension Host receives command -> Sends `request-export-html` request (via `export-html` type + title).
+    - Webview gathers HTML/CSS -> Sanitizes URLs -> Sends `export-html-content` with payload.
+    - Extension Host writes to file.

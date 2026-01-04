@@ -27,3 +27,11 @@
 - **Date**: 2024-01-XX
 - **Decision**: Strict workspace containment for Custom CSS paths.
 - **Reasoning**: Allowing arbitrary absolute paths poses a security risk (loading malicious local files or unauthorized file access). Using `path.relative` ensures strict containment within the workspace root.
+
+## ADR-006: HTML Export Strategy
+- **Date**: 2024-01-XX
+- **Decision**: Generate export HTML payload inside the Webview, then send to Extension Host for saving.
+- **Reasoning**:
+    - **Styles**: The Webview holds the computed CSS state (VS Code defaults + Custom CSS + Markdown styling). Replicating this strictly in the Extension Host is error-prone.
+    - **Encapsulation**: Using `document.styleSheets` and `innerHTML` ensures we capture exactly what the user sees.
+    - **Security**: The Extension Host performs the actual file write, ensuring simple permissions management. The HTML result is sanitized (removing `vscode-resource:` links) before saving to ensure portability.

@@ -7,8 +7,7 @@
 - 🚫: Blocked
 
 ## Feature Backlog
-- [ ] 🟡 **HTML Export**: Export preview content as self-contained HTML file.
-- [ ] 🟡 Final end-to-end testing for all implemented features.
+
 - [ ] 🟢 **PDF Export**: Export preview content as PDF (requires puppeteer or print API).
 - [ ] 🟢 **Slide Mode**: Render markdown as presentation using `---` separators.
 - [ ] 🟢 **Status Bar Stats**: Word count, reading time.
@@ -21,6 +20,8 @@
 ## Completed
 
 ### Features
+- [x] 🟡 **HTML Export**: Export preview content as self-contained HTML file.
+- [x] 🟡 Final end-to-end testing for all implemented features.
 
 
 ### Refactoring
