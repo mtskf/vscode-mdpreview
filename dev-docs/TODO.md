@@ -4,12 +4,31 @@
 - 🚨: Critical / blocks release
 - 🟡: Important / should fix soon
 - 🟢: Nice to have / cleanup
+- 🚫: Blocked
 
-## Refactoring Opportunities (Open)
+## Feature Backlog
 
+### UX Enhancements
+- [ ] 🚫 **Folding Sync (Editor ↔ Preview)**: Sync collapsed sections between editor and preview.
+  - *Blocked*: VS Code API does not expose editor folding state.
+
+### Export Capabilities
+- [ ] 🟡 **HTML Export**: Export preview content as a self-contained HTML file.
+- [ ] 🟢 **PDF Export**: Export preview content as PDF (requires puppeteer or print API).
+
+### Other Ideas (Backlog)
+- [ ] 🟢 **Slide Mode**: Render markdown as presentation using `---` separators.
+- [ ] 🟢 **Status Bar Stats**: Word count, reading time.
+- [ ] 🟢 **Zen Mode**: Focus mode for distraction-free writing.
+
+## Verification
+- [ ] 🟡 Final end-to-end testing for all implemented features.
+
+---
+
+## Completed
+
+### Refactoring
 - [x] 🟡 Prevent `customCss` relative paths like `../` from escaping the workspace.
-
-
-#### P2 (Medium Priority)
-- [x] **Extract duplicate Types**: Expand `shared-types.ts` usage to cover remaining cross-boundary types.
-- [x] **Configuration Management**: Extract checking of `antigravity.customCss` into a clearer config service or helper.
+- [x] **Extract duplicate Types**: Expand `shared-types.ts` usage.
+- [x] **Configuration Management**: Extract `antigravity.customCss` into config service.
