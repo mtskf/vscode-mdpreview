@@ -11,7 +11,7 @@ export type ExtensionToWebviewMessage =
   | { type: 'update'; text: string; base?: string }
   | { type: 'toggle' }
   | { type: 'insert-image'; text: string }
-  | { type: 'export-html' };
+  | { type: 'export-html'; title?: string };
 
 // Union type for backwards compatibility/generic handlers if needed,
 // but prefer specific types where possible.

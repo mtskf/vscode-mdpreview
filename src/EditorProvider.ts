@@ -13,6 +13,7 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 
 	private static readonly viewType = 'antigravity.markdownEditor';
   private static readonly webviews = new Set<vscode.WebviewPanel>();
+  private static readonly panelDocuments = new Map<vscode.WebviewPanel, vscode.TextDocument>();
 
 	constructor(
 		private readonly context: vscode.ExtensionContext
@@ -32,6 +33,7 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 		_token: vscode.CancellationToken
 	): Promise<void> {
     MarkdownEditorProvider.webviews.add(webviewPanel);
+    MarkdownEditorProvider.panelDocuments.set(webviewPanel, document);
 
     // Resolve custom CSS URIs using ConfigManager
     const configManager = ConfigManager.getInstance();
@@ -79,6 +81,7 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 		webviewPanel.onDidDispose(() => {
 			changeDocumentSubscription.dispose();
       MarkdownEditorProvider.webviews.delete(webviewPanel);
+      MarkdownEditorProvider.panelDocuments.delete(webviewPanel);
 		});
 
 
@@ -108,10 +111,14 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 	}
 
   public static exportHtml() {
-    for (const panel of this.webviews) {
-      if (panel.visible) {
-        panel.webview.postMessage({ type: 'export-html' });
-      }
+    // Only export from the currently active/focused webview
+    // Use the last registered panel as "active" for simplicity
+    // In VS Code, the visible panel that triggered the command is the intended target
+    const activePanel = Array.from(this.webviews).find(p => p.active && p.visible);
+    if (activePanel) {
+      const docInfo = this.panelDocuments.get(activePanel);
+      const title = docInfo ? path.basename(docInfo.fileName, '.md') : undefined;
+      activePanel.webview.postMessage({ type: 'export-html', title });
     }
   }
 

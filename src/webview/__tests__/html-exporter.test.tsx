@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateStandaloneHtml } from '../lib/html-exporter';
+import { generateStandaloneHtml, sanitizeForExport } from '../lib/html-exporter';
 
 describe('html-exporter', () => {
   describe('generateStandaloneHtml', () => {
@@ -52,6 +52,58 @@ describe('html-exporter', () => {
 
       // Should not contain raw script tag in title
       expect(result).not.toContain('<title><script>');
+    });
+
+    it('uses provided title in document', () => {
+      const result = generateStandaloneHtml('<p>Test</p>', '', 'My Document');
+
+      expect(result).toContain('<title>My Document</title>');
+    });
+  });
+
+  describe('sanitizeForExport', () => {
+    it('removes vscode-resource: URLs from img src', () => {
+      const html = '<img src="vscode-resource://file/path/to/image.png" alt="test">';
+      const result = sanitizeForExport(html);
+
+      expect(result).not.toContain('vscode-resource:');
+      // Should have a placeholder or be removed
+      expect(result).toContain('alt="test"');
+    });
+
+    it('removes vscode-file: URLs from img src', () => {
+      const html = '<img src="vscode-file://vscode-app/path/image.png">';
+      const result = sanitizeForExport(html);
+
+      expect(result).not.toContain('vscode-file:');
+    });
+
+    it('removes vscode-webview: URLs from img src', () => {
+      const html = '<img src="https://file+.vscode-resource.vscode-cdn.net/path/image.png">';
+      const result = sanitizeForExport(html);
+
+      expect(result).not.toContain('vscode-resource.vscode-cdn.net');
+    });
+
+    it('preserves https URLs', () => {
+      const html = '<img src="https://example.com/image.png">';
+      const result = sanitizeForExport(html);
+
+      expect(result).toContain('https://example.com/image.png');
+    });
+
+    it('preserves data URIs', () => {
+      const html = '<img src="data:image/png;base64,ABC123">';
+      const result = sanitizeForExport(html);
+
+      expect(result).toContain('data:image/png;base64,ABC123');
+    });
+
+    it('removes vscode URLs from CSS url() rules', () => {
+      const css = 'background: url("vscode-resource://file/bg.png");';
+      const result = sanitizeForExport(css);
+
+      expect(result).not.toContain('vscode-resource:');
     });
   });
 });
