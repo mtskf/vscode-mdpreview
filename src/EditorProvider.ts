@@ -13,6 +13,7 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 
 	private static readonly viewType = 'antigravity.markdownEditor';
   private static readonly webviews = new Set<vscode.WebviewPanel>();
+  private static readonly panelDocuments = new Map<vscode.WebviewPanel, vscode.TextDocument>();
 
 	constructor(
 		private readonly context: vscode.ExtensionContext
@@ -32,6 +33,7 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 		_token: vscode.CancellationToken
 	): Promise<void> {
     MarkdownEditorProvider.webviews.add(webviewPanel);
+    MarkdownEditorProvider.panelDocuments.set(webviewPanel, document);
 
     // Resolve custom CSS URIs using ConfigManager
     const configManager = ConfigManager.getInstance();
@@ -79,6 +81,7 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 		webviewPanel.onDidDispose(() => {
 			changeDocumentSubscription.dispose();
       MarkdownEditorProvider.webviews.delete(webviewPanel);
+      MarkdownEditorProvider.panelDocuments.delete(webviewPanel);
 		});
 
 
@@ -97,12 +100,55 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
         case 'paste-image':
           this.handlePasteImage(document, webviewPanel, e.data, e.fileName);
           return;
+        case 'export-html-content':
+          this.handleExportHtmlContent(document, e.html);
+          return;
 
 			}
 		});
 
 		updateWebview();
 	}
+
+  public static exportHtml() {
+    // Prefer active and visible panel, fallback to any visible panel
+    let targetPanel = Array.from(this.webviews).find(p => p.active && p.visible);
+    if (!targetPanel) {
+      targetPanel = Array.from(this.webviews).find(p => p.visible);
+    }
+
+    if (targetPanel) {
+      const docInfo = this.panelDocuments.get(targetPanel);
+      const title = docInfo ? path.basename(docInfo.fileName, '.md') : undefined;
+      targetPanel.webview.postMessage({ type: 'export-html', title });
+    } else {
+      vscode.window.showWarningMessage('No Markdown preview is currently open.');
+    }
+  }
+
+  private async handleExportHtmlContent(document: vscode.TextDocument, html: string) {
+    // Suggest a filename based on the document
+    const docName = path.basename(document.fileName, '.md');
+    const defaultUri = document.uri.scheme !== 'untitled'
+      ? vscode.Uri.joinPath(document.uri, '..', `${docName}.html`)
+      : undefined;
+
+    const saveUri = await vscode.window.showSaveDialog({
+      defaultUri,
+      filters: { 'HTML Files': ['html'] },
+      saveLabel: 'Export HTML'
+    });
+
+    if (saveUri) {
+      try {
+        const buffer = Buffer.from(html, 'utf-8');
+        await vscode.workspace.fs.writeFile(saveUri, buffer);
+        vscode.window.showInformationMessage(`Exported to ${saveUri.fsPath}`);
+      } catch (e) {
+        vscode.window.showErrorMessage(`Failed to export HTML: ${e}`);
+      }
+    }
+  }
 
   private async handlePasteImage(document: vscode.TextDocument, startWebviewPanel: vscode.WebviewPanel, base64Data: string, fileName: string) {
       if (document.uri.scheme === 'untitled') {

@@ -6,11 +6,12 @@ import Editor, { EditorHandle } from '../components/Editor';
 let lastContainer: HTMLElement | null = null;
 let disposeHandler: (() => void) | null = null;
 let executeEditsMock: ReturnType<typeof vi.fn> | null = null;
+let selectionValue: any = null;
 
 vi.mock('@monaco-editor/react', () => {
   const React = require('react');
   return {
-    default: ({ onMount }: any) => {
+    default: ({ onMount, onChange }: any) => {
       React.useEffect(() => {
         const container = document.createElement('div');
         const addEventListener = vi.fn();
@@ -24,7 +25,7 @@ vi.mock('@monaco-editor/react', () => {
 
         const mockEditor = {
           getContainerDomNode: () => container,
-          getSelection: () => null,
+          getSelection: () => selectionValue,
           executeEdits: executeEditsMock,
           onDidDispose: (cb: () => void) => {
             disposeHandler = cb;
@@ -33,6 +34,10 @@ vi.mock('@monaco-editor/react', () => {
 
         if (onMount) {
           onMount(mockEditor, {});
+        }
+
+        if (onChange) {
+          onChange(undefined);
         }
       }, [onMount]);
 
@@ -43,6 +48,7 @@ vi.mock('@monaco-editor/react', () => {
 
 describe('Editor Component', () => {
   it('removes paste listener on dispose', () => {
+    selectionValue = null;
     render(<Editor content="" onChange={vi.fn()} />);
 
     expect(lastContainer).not.toBeNull();
@@ -57,6 +63,7 @@ describe('Editor Component', () => {
   });
 
   it('does not execute edits when selection is null', () => {
+    selectionValue = null;
     const ref = createRef<EditorHandle>();
     render(<Editor ref={ref} content="" onChange={vi.fn()} />);
 
@@ -65,7 +72,28 @@ describe('Editor Component', () => {
     expect(executeEditsMock).not.toHaveBeenCalled();
   });
 
+  it('executes edits when selection exists', () => {
+    selectionValue = {
+      startLineNumber: 1,
+      startColumn: 1,
+      endLineNumber: 1,
+      endColumn: 1,
+    };
+    const ref = createRef<EditorHandle>();
+    render(<Editor ref={ref} content="" onChange={vi.fn()} />);
+
+    ref.current?.insertAtCursor('test');
+
+    expect(executeEditsMock).toHaveBeenCalledWith(
+      'my-source',
+      expect.arrayContaining([
+        expect.objectContaining({ text: 'test', forceMoveMarkers: true }),
+      ])
+    );
+  });
+
   it('handles paste events correctly', () => {
+    selectionValue = null;
     const onPasteImage = vi.fn();
     render(<Editor content="" onChange={vi.fn()} onPasteImage={onPasteImage} />);
 

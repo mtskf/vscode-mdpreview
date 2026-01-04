@@ -19,7 +19,10 @@ describe('App acquireVsCodeApi fallback', () => {
     render(<App />);
 
     expect(typeof window.acquireVsCodeApi).toBe('function');
-    expect(() => window.acquireVsCodeApi().postMessage({ type: 'toggle' })).not.toThrow();
+    const api = window.acquireVsCodeApi();
+    expect(() => api.postMessage({ type: 'toggle' })).not.toThrow();
+    expect(api.getState()).toEqual({});
+    expect(() => api.setState({ foo: 'bar' })).not.toThrow();
 
     if (original) {
       window.acquireVsCodeApi = original;

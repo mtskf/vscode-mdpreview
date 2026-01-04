@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { WebviewToExtensionMessage, ExtensionToWebviewMessage } from '../shared-types';
 import { EditorHandle } from './components/Editor';
 import { useDebounce } from './hooks/useDebounce';
+import { generateStandaloneHtml, sanitizeForExport } from './lib/html-exporter';
 
 declare global {
   interface Window {
@@ -81,6 +82,27 @@ function App() {
         if (editorRef.current) {
           editorRef.current.insertAtCursor(message.text);
         }
+      } else if (message.type === 'export-html') {
+        // Generate standalone HTML from current preview
+        const previewHtml = previewRef.current?.innerHTML || '';
+        // Collect computed styles (inline the main CSS for self-contained output)
+        const rawStyles = Array.from(document.styleSheets)
+          .filter(sheet => {
+            try {
+              return sheet.cssRules && !sheet.href?.includes('vscode');
+            } catch {
+              return false;
+            }
+          })
+          .map(sheet => Array.from(sheet.cssRules).map(rule => rule.cssText).join('\n'))
+          .join('\n');
+
+        // Sanitize both HTML and CSS to remove vscode-specific URLs
+        const sanitizedHtml = sanitizeForExport(previewHtml);
+        const sanitizedStyles = sanitizeForExport(rawStyles);
+
+        const html = generateStandaloneHtml(sanitizedHtml, sanitizedStyles, message.title);
+        vscode.postMessage({ type: 'export-html-content', html });
       }
     };
 

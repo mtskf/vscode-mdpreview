@@ -1,18 +1,12 @@
 # Backlog
 
-## Recently Implemented
-- ✅ Copy Code Button
-- ✅ Table of Contents (TOC)
-- ✅ Interactive Task Lists
-- ✅ Smart Image Paste
-- ✅ Clipboard fallback
-- ✅ CSP style-src fix
-- ✅ Custom CSS Support
+
 
 ## Features Deferred from Initial Release
 
 ### Export Capabilities
-- **PDF / HTML Export**: Export the preview content as a unified HTML file or a PDF. This would allow users to share their documents easily.
+
+- **PDF Export**: Export the preview content as a PDF.
     - *Implementation Note*: Likely requires `puppeteer` or utilizing VS Code's webview print capabilities.
 
 ### Presentation Mode

@@ -62,6 +62,16 @@ describe('ConfigManager', () => {
         expect(uris[0].fsPath).toBe('/doc-workspace/style.css');
     });
 
+    it('resolves relative path against first workspace when no document workspace', async () => {
+        mockGetConfiguration.mockReturnValue({ get: () => ['style.css'] });
+        (vscode.workspace.getWorkspaceFolder as any).mockReturnValue(undefined);
+        (vscode.workspace as any).workspaceFolders = [{ uri: { fsPath: '/workspace' } }];
+
+        const uris = await configManager.resolveCustomCssUris({ uri: {} } as any);
+        expect(uris).toHaveLength(1);
+        expect(uris[0].fsPath).toBe('/workspace/style.css');
+    });
+
     it('warns if file does not exist', async () => {
         mockGetConfiguration.mockReturnValue({ get: () => ['/workspace/missing.css'] });
         (isPathInWorkspace as any).mockReturnValue(true);
@@ -70,6 +80,16 @@ describe('ConfigManager', () => {
         const uris = await configManager.resolveCustomCssUris({ uri: {} } as any);
         expect(uris).toHaveLength(0);
         expect(mockShowWarningMessage).toHaveBeenCalledWith(expect.stringContaining('not found'));
+    });
+
+    it('warns if no workspace folders are available for relative path', async () => {
+        mockGetConfiguration.mockReturnValue({ get: () => ['style.css'] });
+        (vscode.workspace.getWorkspaceFolder as any).mockReturnValue(undefined);
+        (vscode.workspace as any).workspaceFolders = [];
+
+        const uris = await configManager.resolveCustomCssUris({ uri: {} } as any);
+        expect(uris).toHaveLength(0);
+        expect(mockShowWarningMessage).toHaveBeenCalledWith(expect.stringContaining('skipped'));
     });
 
     it('rejects relative path escaping workspace', async () => {
