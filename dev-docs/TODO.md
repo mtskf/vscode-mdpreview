@@ -7,23 +7,15 @@
 - 🚫: Blocked
 
 ## Feature Backlog
-
-### UX Enhancements
-- [ ] 🚫 **Folding Sync (Editor ↔ Preview)**: Sync collapsed sections between editor and preview.
-  - *Blocked*: VS Code API does not expose editor folding state.
-
-### Export Capabilities
 - [x] 🟡 **HTML Export**: Export preview content as a self-contained HTML file.
   - *Needs manual verification*
+- [ ] 🟡 Final end-to-end testing for all implemented features.
 - [ ] 🟢 **PDF Export**: Export preview content as PDF (requires puppeteer or print API).
-
-### Other Ideas (Backlog)
 - [ ] 🟢 **Slide Mode**: Render markdown as presentation using `---` separators.
 - [ ] 🟢 **Status Bar Stats**: Word count, reading time.
 - [ ] 🟢 **Zen Mode**: Focus mode for distraction-free writing.
-
-## Verification
-- [ ] 🟡 Final end-to-end testing for all implemented features.
+- [ ] 🚫 **Folding Sync (Editor ↔ Preview)**: Sync collapsed sections between editor and preview.
+  - *Blocked*: VS Code API does not expose editor folding state.
 
 ---
 
