@@ -63,16 +63,21 @@ export function sanitizeForExport(content: string): string {
     'src="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'%3E%3Crect fill=\'%23444\' width=\'100\' height=\'100\'/%3E%3Ctext x=\'50\' y=\'55\' text-anchor=\'middle\' fill=\'%23888\' font-size=\'10\'%3ELocal Image%3C/text%3E%3C/svg%3E"'
   );
 
-  // Replace vscode-specific URLs in href with # (dead link indicator)
-  // Two-pass: first replace href, then clean up any title attributes in the same <a> tag
+  // Replace vscode-specific URLs in <a> href with # (dead link indicator)
+  // Clean up any title attributes in the same tag to avoid duplicates
   result = result.replace(
     new RegExp(`(<a\\s[^>]*?)\\bhref=["'][^"']*(?:${vscodeUrlPattern})[^"']*["']([^>]*>)`, 'gi'),
     (match, before, after) => {
-      // Remove any existing title attribute from the tag to avoid duplicates
       const cleanBefore = before.replace(/\s+title=["'][^"']*["']/gi, '');
       const cleanAfter = after.replace(/\s+title=["'][^"']*["']/gi, '');
       return `${cleanBefore}href="#" title="Link unavailable in exported HTML"${cleanAfter}`;
     }
+  );
+
+  // Fallback: remove vscode hrefs in non-anchor elements (link, use, etc.)
+  result = result.replace(
+    new RegExp(`\\bhref=["'][^"']*(?:${vscodeUrlPattern})[^"']*["']`, 'gi'),
+    ''
   );
 
   // Replace vscode URLs in CSS url() with empty/transparent
