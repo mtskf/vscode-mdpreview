@@ -97,12 +97,47 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
         case 'paste-image':
           this.handlePasteImage(document, webviewPanel, e.data, e.fileName);
           return;
+        case 'export-html-content':
+          this.handleExportHtmlContent(document, e.html);
+          return;
 
 			}
 		});
 
 		updateWebview();
 	}
+
+  public static exportHtml() {
+    for (const panel of this.webviews) {
+      if (panel.visible) {
+        panel.webview.postMessage({ type: 'export-html' });
+      }
+    }
+  }
+
+  private async handleExportHtmlContent(document: vscode.TextDocument, html: string) {
+    // Suggest a filename based on the document
+    const docName = path.basename(document.fileName, '.md');
+    const defaultUri = document.uri.scheme !== 'untitled'
+      ? vscode.Uri.joinPath(document.uri, '..', `${docName}.html`)
+      : undefined;
+
+    const saveUri = await vscode.window.showSaveDialog({
+      defaultUri,
+      filters: { 'HTML Files': ['html'] },
+      saveLabel: 'Export HTML'
+    });
+
+    if (saveUri) {
+      try {
+        const buffer = Buffer.from(html, 'utf-8');
+        await vscode.workspace.fs.writeFile(saveUri, buffer);
+        vscode.window.showInformationMessage(`Exported to ${saveUri.fsPath}`);
+      } catch (e) {
+        vscode.window.showErrorMessage(`Failed to export HTML: ${e}`);
+      }
+    }
+  }
 
   private async handlePasteImage(document: vscode.TextDocument, startWebviewPanel: vscode.WebviewPanel, base64Data: string, fileName: string) {
       if (document.uri.scheme === 'untitled') {

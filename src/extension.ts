@@ -6,6 +6,9 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(vscode.commands.registerCommand('antigravity.markdown.toggle', () => {
     MarkdownEditorProvider.toggle();
   }));
+  context.subscriptions.push(vscode.commands.registerCommand('antigravity.markdown.exportHtml', () => {
+    MarkdownEditorProvider.exportHtml();
+  }));
 }
 
 export function deactivate() {}

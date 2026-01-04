@@ -31,6 +31,11 @@
         "command": "antigravity.markdown.toggle",
         "title": "Toggle Markdown Edit/Preview",
         "category": "Antigravity Markdown"
+      },
+      {
+        "command": "antigravity.markdown.exportHtml",
+        "title": "Export as HTML",
+        "category": "Antigravity Markdown"
       }
     ],
     "keybindings": [

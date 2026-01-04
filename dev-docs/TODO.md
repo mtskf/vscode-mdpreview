@@ -13,7 +13,8 @@
   - *Blocked*: VS Code API does not expose editor folding state.
 
 ### Export Capabilities
-- [ ] 🟡 **HTML Export**: Export preview content as a self-contained HTML file.
+- [x] 🟡 **HTML Export**: Export preview content as a self-contained HTML file.
+  - *Needs manual verification*
 - [ ] 🟢 **PDF Export**: Export preview content as PDF (requires puppeteer or print API).
 
 ### Other Ideas (Backlog)

@@ -13,7 +13,8 @@
 ## Features Deferred from Initial Release
 
 ### Export Capabilities
-- **PDF / HTML Export**: Export the preview content as a unified HTML file or a PDF. This would allow users to share their documents easily.
+- ✅ **HTML Export**: Export the preview content as a self-contained HTML file.
+- **PDF Export**: Export the preview content as a PDF.
     - *Implementation Note*: Likely requires `puppeteer` or utilizing VS Code's webview print capabilities.
 
 ### Presentation Mode
