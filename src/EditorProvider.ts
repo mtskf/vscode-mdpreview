@@ -111,14 +111,18 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 	}
 
   public static exportHtml() {
-    // Only export from the currently active/focused webview
-    // Use the last registered panel as "active" for simplicity
-    // In VS Code, the visible panel that triggered the command is the intended target
-    const activePanel = Array.from(this.webviews).find(p => p.active && p.visible);
-    if (activePanel) {
-      const docInfo = this.panelDocuments.get(activePanel);
+    // Prefer active and visible panel, fallback to any visible panel
+    let targetPanel = Array.from(this.webviews).find(p => p.active && p.visible);
+    if (!targetPanel) {
+      targetPanel = Array.from(this.webviews).find(p => p.visible);
+    }
+
+    if (targetPanel) {
+      const docInfo = this.panelDocuments.get(targetPanel);
       const title = docInfo ? path.basename(docInfo.fileName, '.md') : undefined;
-      activePanel.webview.postMessage({ type: 'export-html', title });
+      targetPanel.webview.postMessage({ type: 'export-html', title });
+    } else {
+      vscode.window.showWarningMessage('No Markdown preview is currently open.');
     }
   }
 

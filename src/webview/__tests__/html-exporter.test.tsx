@@ -67,8 +67,17 @@ describe('html-exporter', () => {
       const result = sanitizeForExport(html);
 
       expect(result).not.toContain('vscode-resource:');
-      // Should have a placeholder or be removed
       expect(result).toContain('alt="test"');
+      expect(result).toContain('src="data:image');
+    });
+
+    it('converts vscode href to # with title', () => {
+      const html = '<a href="vscode-resource://file/doc.md">Link</a>';
+      const result = sanitizeForExport(html);
+
+      expect(result).not.toContain('vscode-resource:');
+      expect(result).toContain('href="#"');
+      expect(result).toContain('title="Link unavailable');
     });
 
     it('removes vscode-file: URLs from img src', () => {
