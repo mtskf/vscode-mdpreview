@@ -27,7 +27,7 @@ suite('Extension Test Suite', () => {
     // Execute Export Command
     try {
       // Set test URI to bypass save dialog
-      // Set test URI to bypass save dialog
+
       MarkdownEditorProvider.test_pendingExportUri = vscode.Uri.file(path.join(os.tmpdir(), 'test-export.html'));
 
       await vscode.commands.executeCommand('antigravity.markdown.exportHtml');
