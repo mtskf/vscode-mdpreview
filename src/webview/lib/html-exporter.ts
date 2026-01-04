@@ -54,8 +54,8 @@ const VSCODE_URL_PATTERNS = [
 export function sanitizeForExport(content: string): string {
   let result = content;
 
-  // Pattern fragment for vscode-specific URLs (used in HTML attributes)
-  const vscodeUrlPattern = 'vscode-resource|vscode-file|vscode-webview|vscode-resource\\.vscode-cdn\\.net|file\\+\\..*vscode';
+  // Pattern fragment for vscode-specific URLs (quote-safe - no .* that could cross quotes)
+  const vscodeUrlPattern = 'vscode-resource|vscode-file|vscode-webview|vscode-resource\\.vscode-cdn\\.net|file\\+\\.[^"\'\\s]*vscode';
 
   // Replace vscode-specific URLs in img src with placeholder image
   result = result.replace(
@@ -64,10 +64,15 @@ export function sanitizeForExport(content: string): string {
   );
 
   // Replace vscode-specific URLs in href with # (dead link indicator)
-  // First remove any existing title attribute to avoid duplicates
+  // Two-pass: first replace href, then clean up any title attributes in the same <a> tag
   result = result.replace(
-    new RegExp(`\\bhref=["']([^"']*(?:${vscodeUrlPattern})[^"']*)["'](\\s+title=["'][^"']*["'])?`, 'gi'),
-    'href="#" title="Link unavailable in exported HTML"'
+    new RegExp(`(<a\\s[^>]*?)\\bhref=["'][^"']*(?:${vscodeUrlPattern})[^"']*["']([^>]*>)`, 'gi'),
+    (match, before, after) => {
+      // Remove any existing title attribute from the tag to avoid duplicates
+      const cleanBefore = before.replace(/\s+title=["'][^"']*["']/gi, '');
+      const cleanAfter = after.replace(/\s+title=["'][^"']*["']/gi, '');
+      return `${cleanBefore}href="#" title="Link unavailable in exported HTML"${cleanAfter}`;
+    }
   );
 
   // Replace vscode URLs in CSS url() with empty/transparent
