@@ -123,5 +123,13 @@ describe('html-exporter', () => {
       expect(result).toContain('href="#"');
       expect(result).toContain('<use');
     });
+
+    it('sanitizes unquoted src attributes', () => {
+      const html = '<img src=vscode-resource://file/image.png alt=test>';
+      const result = sanitizeForExport(html);
+
+      expect(result).not.toContain('vscode-resource:');
+      expect(result).toContain('src="data:image');
+    });
   });
 });

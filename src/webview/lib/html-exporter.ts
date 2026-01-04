@@ -57,9 +57,15 @@ export function sanitizeForExport(content: string): string {
   // Pattern fragment for vscode-specific URLs (quote-safe - no .* that could cross quotes)
   const vscodeUrlPattern = 'vscode-resource|vscode-file|vscode-webview|vscode-resource\\.vscode-cdn\\.net|file\\+\\.[^"\'\\s]*vscode';
 
-  // Replace vscode-specific URLs in img src with placeholder image
+  // Replace vscode-specific URLs in img src with placeholder image (quoted)
   result = result.replace(
     new RegExp(`\\bsrc=["']([^"']*(?:${vscodeUrlPattern})[^"']*)["']`, 'gi'),
+    'src="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'%3E%3Crect fill=\'%23444\' width=\'100\' height=\'100\'/%3E%3Ctext x=\'50\' y=\'55\' text-anchor=\'middle\' fill=\'%23888\' font-size=\'10\'%3ELocal Image%3C/text%3E%3C/svg%3E"'
+  );
+
+  // Replace unquoted src attributes
+  result = result.replace(
+    new RegExp(`\\bsrc=([^"'\\s>]*(?:${vscodeUrlPattern})[^\\s>]*)`, 'gi'),
     'src="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'%3E%3Crect fill=\'%23444\' width=\'100\' height=\'100\'/%3E%3Ctext x=\'50\' y=\'55\' text-anchor=\'middle\' fill=\'%23888\' font-size=\'10\'%3ELocal Image%3C/text%3E%3C/svg%3E"'
   );
 
@@ -76,7 +82,7 @@ export function sanitizeForExport(content: string): string {
 
   // Fallback: replace vscode hrefs in non-anchor elements (link, use, etc.) with #
   result = result.replace(
-    new RegExp(`\\bhref=["'][^"']*(?:${vscodeUrlPattern})[^"']*["']`, 'gi'),
+    new RegExp(`\\bhref=["']?[^"'\\s>]*(?:${vscodeUrlPattern})[^"'\\s>]*["']?`, 'gi'),
     'href="#"'
   );
 
