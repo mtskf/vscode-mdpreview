@@ -63,10 +63,10 @@ export function sanitizeForExport(content: string): string {
     'src="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'%3E%3Crect fill=\'%23444\' width=\'100\' height=\'100\'/%3E%3Ctext x=\'50\' y=\'55\' text-anchor=\'middle\' fill=\'%23888\' font-size=\'10\'%3ELocal Image%3C/text%3E%3C/svg%3E"'
   );
 
-  // Replace unquoted src attributes
+  // Replace unquoted src attributes (scoped to img tags for safety)
   result = result.replace(
-    new RegExp(`\\bsrc=([^"'\\s>]*(?:${vscodeUrlPattern})[^\\s>]*)`, 'gi'),
-    'src="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'%3E%3Crect fill=\'%23444\' width=\'100\' height=\'100\'/%3E%3Ctext x=\'50\' y=\'55\' text-anchor=\'middle\' fill=\'%23888\' font-size=\'10\'%3ELocal Image%3C/text%3E%3C/svg%3E"'
+    new RegExp(`(<img\\s[^>]*?)\\bsrc=([^"'\\s>]*(?:${vscodeUrlPattern})[^\\s>]*)([^>]*>)`, 'gi'),
+    '$1src="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'%3E%3Crect fill=\'%23444\' width=\'100\' height=\'100\'/%3E%3Ctext x=\'50\' y=\'55\' text-anchor=\'middle\' fill=\'%23888\' font-size=\'10\'%3ELocal Image%3C/text%3E%3C/svg%3E"$3'
   );
 
   // Replace vscode-specific URLs in <a> href with # (dead link indicator)
