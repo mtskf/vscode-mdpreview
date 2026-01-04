@@ -5,6 +5,7 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { MarkdownEditorProvider } from '../../EditorProvider';
+import * as os from 'os';
 
 suite('Extension Test Suite', () => {
 	vscode.window.showInformationMessage('Start all tests.');
@@ -26,7 +27,8 @@ suite('Extension Test Suite', () => {
     // Execute Export Command
     try {
       // Set test URI to bypass save dialog
-      MarkdownEditorProvider.test_pendingExportUri = vscode.Uri.file(path.join(path.dirname(doc.uri.fsPath), 'test-export.html'));
+      // Set test URI to bypass save dialog
+      MarkdownEditorProvider.test_pendingExportUri = vscode.Uri.file(path.join(os.tmpdir(), 'test-export.html'));
 
       await vscode.commands.executeCommand('antigravity.markdown.exportHtml');
       assert.ok(true, 'Command executed without error');

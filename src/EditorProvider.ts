@@ -139,10 +139,14 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
       ? vscode.Uri.joinPath(document.uri, '..', `${docName}.html`)
       : undefined;
 
-    let saveUri = MarkdownEditorProvider.test_pendingExportUri;
+    let saveUri: vscode.Uri | undefined;
 
-    // Reset test URI
-    MarkdownEditorProvider.test_pendingExportUri = undefined;
+    // Check for test hook ONLY in Valid Test Mode
+    if (this.context.extensionMode === vscode.ExtensionMode.Test) {
+        saveUri = MarkdownEditorProvider.test_pendingExportUri;
+        // Reset test URI
+        MarkdownEditorProvider.test_pendingExportUri = undefined;
+    }
 
     if (!saveUri) {
       saveUri = await vscode.window.showSaveDialog({
