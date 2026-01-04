@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **HTML Export**: Export preview content as self-contained HTML file via command palette.
 - **Smart Image Paste**: Support pasting images directly from clipboard into the editor. Images are automatically saved to an `assets/` directory.
 - **Custom CSS Support**: Allow users to apply custom CSS files via `antigravity.customCss` setting.
 - **UX Enhancements**:

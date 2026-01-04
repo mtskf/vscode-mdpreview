@@ -47,3 +47,9 @@
 - **TOC**: Sidebar with auto-generated Table of Contents.
 - **Copy Code**: Button on code blocks to copy content.
 - **Task Lists**: Interactive checkboxes in Preview mode (updates markdown source).
+
+### 7. HTML Export
+- **Command**: `Antigravity Markdown: Export as HTML` in Command Palette.
+- **Output**: Self-contained HTML with inlined CSS.
+- **URL Sanitization**: VS Code webview URLs replaced with placeholders.
+- **Scope**: Active panel only (not all open previews).
