@@ -51,6 +51,27 @@ function App() {
 
   // Send updates to extension when debounced content changes
   useEffect(() => {
+    // Error forwarding
+    const handleError = (event: ErrorEvent) => {
+      vscode.postMessage({ type: 'error', message: event.message || 'Unknown error' });
+    };
+    window.addEventListener('error', handleError);
+
+    // Also catch unhandled promises
+    const handleRejection = (event: PromiseRejectionEvent) => {
+      vscode.postMessage({ type: 'error', message: `Unhandled Rejection: ${event.reason}` });
+    };
+    window.addEventListener('unhandledrejection', handleRejection);
+
+    return () => {
+      window.removeEventListener('error', handleError);
+      window.removeEventListener('unhandledrejection', handleRejection);
+    };
+  }, []);
+
+
+
+  useEffect(() => {
     // Don't send update if it matches what we just received from extension
     // This also handles the initial render (both empty)
     if (debouncedContent === lastRemoteContent.current) {
@@ -83,6 +104,8 @@ function App() {
           editorRef.current.insertAtCursor(message.text);
         }
       } else if (message.type === 'export-html') {
+
+
         // Generate standalone HTML from current preview
         const previewHtml = previewRef.current?.innerHTML || '';
         // Collect computed styles (inline the main CSS for self-contained output)

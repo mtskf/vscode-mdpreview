@@ -117,6 +117,11 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
       targetPanel = Array.from(this.webviews).find(p => p.visible);
     }
 
+    // Fallback: if only one panel exists, use it regardless of visible state (for debugging/single file mode)
+    if (!targetPanel && this.webviews.size === 1) {
+       targetPanel = Array.from(this.webviews)[0];
+    }
+
     if (targetPanel) {
       const docInfo = this.panelDocuments.get(targetPanel);
       const title = docInfo ? path.basename(docInfo.fileName, '.md') : undefined;
@@ -230,14 +235,14 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 			<head>
 				<meta charset="UTF-8">
 				<meta name="viewport" content="width=device-width, initial-scale=1.0">
-				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}'; img-src ${webview.cspSource} https: data:;">
+				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src ${webview.cspSource} 'nonce-${nonce}' 'unsafe-eval'; worker-src ${webview.cspSource} blob: data:; img-src ${webview.cspSource} https: data:; font-src ${webview.cspSource} https: data:;">
 				<link href="${styleUri}" rel="stylesheet">
 				${customCssLinks}
 				<title>Markdown Preview</title>
 			</head>
 			<body class="bg-background text-foreground">
 				<div id="root"></div>
-				<script type="module" nonce="${nonce}" src="${scriptUri}"></script>
+				<script nonce="${nonce}" src="${scriptUri}"></script>
 			</body>
 			</html>`;
 	}

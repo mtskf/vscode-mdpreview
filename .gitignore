@@ -43,3 +43,4 @@ yarn-error.log*
 
 # Test artifacts
 test_features.md
+.vscode-test/

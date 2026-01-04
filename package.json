@@ -75,6 +75,7 @@
     "test": "npm run test:unit",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
+    "pretest:e2e": "npm run compile-tests && npm run compile",
     "test:e2e": "node ./out/test/runTest.js",
     "build:webview": "vite build"
   },

@@ -4,7 +4,8 @@ export type WebviewToExtensionMessage =
   | { type: 'open-link'; href: string }
   | { type: 'paste-image'; data: string; fileName: string }
   | { type: 'toggle' }
-  | { type: 'export-html-content'; html: string };
+  | { type: 'export-html-content'; html: string }
+  | { type: 'error'; message: string };
 
 // Messages sent from Extension to Webview
 export type ExtensionToWebviewMessage =

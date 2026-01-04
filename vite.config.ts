@@ -9,6 +9,7 @@ export default defineConfig({
     rollupOptions: {
       input: 'src/webview/main.tsx',
       output: {
+        format: 'iife',
         entryFileNames: `main.js`,
         chunkFileNames: `[name].js`,
         assetFileNames: `main.[ext]`,

@@ -7,6 +7,7 @@
 - 🚫: Blocked
 
 ## Feature Backlog
+- [ ] 🟡 **HTML Export**: Export preview content as self-contained HTML file.
 - [ ] 🟡 Final end-to-end testing for all implemented features.
 - [ ] 🟢 **PDF Export**: Export preview content as PDF (requires puppeteer or print API).
 - [ ] 🟢 **Slide Mode**: Render markdown as presentation using `---` separators.
@@ -20,7 +21,7 @@
 ## Completed
 
 ### Features
-- [x] 🟡 **HTML Export**: Export preview content as self-contained HTML file.
+
 
 ### Refactoring
 - [x] 🟡 Prevent `customCss` relative paths like `../` from escaping the workspace.
